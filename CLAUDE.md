@@ -26,3 +26,53 @@ All design and development decisions MUST align with [PRODUCT.md](PRODUCT.md). B
 - Code, comments, variable names — in English
 - User-facing bot messages — in Russian (primary) and English (for exercises)
 - Documentation — Russian or English depending on context
+
+## Project Structure
+
+```
+/src
+  ├── bot.ts              # grammY bot entry point, command handlers, message routing
+  ├── state.ts            # User state & profile management (DB operations)
+  ├── constants.ts        # Hardcoded strings
+  └── /llm                # LLM integrations (OpenAI, Gemini)
+      ├── index.ts        # Factory function createLLM()
+      ├── openai.ts       # OpenAI client
+      ├── gemini.ts       # Google Gemini client
+      └── types.ts        # Shared LLM interfaces
+
+/prisma
+  ├── schema.prisma       # Data models: TestUserState, TestUserProfile
+  └── /migrations         # Database migrations
+
+/directives              # Agent directives registry
+  ├── 00-agent-protocol.md    # Core work cycle
+  ├── 10-runtime.md           # Dev mode & restart rules
+  ├── 20-db-prisma.md         # Database & schema changes
+  ├── 30-telegram.md          # grammY & bot behavior
+  ├── 40-llm.md               # LLM providers & prompting
+  ├── 50-git-quality.md       # Git & code quality
+  └── 90-definition-of-done.md # Task completion checklist
+
+Root
+  ├── package.json        # Dependencies & scripts (dev, build, start, start:studio)
+  ├── tsconfig.json       # TypeScript config
+  ├── prisma.config.ts    # Prisma config (better-sqlite3)
+  ├── .env               # Environment variables (BOT_TOKEN, API keys)
+  └── PRODUCT.md         # Product document (source of truth)
+```
+
+### Key Files
+- **`bot.ts`** — Handles /start, /debug commands; routes messages by user state (ONBOARDING → parse with LLM → MAIN_MENU)
+- **`state.ts`** — DB layer for user state & profile persistence
+- **Data Models** — TestUserState (id, state), TestUserProfile (id, level, goals, interests, rawResponse)
+
+## Following Directives
+See `/directives` folder for detailed guidelines by topic:
+- **00-agent-protocol.md** — Core work cycle, no guessing, keep diffs small
+- **10-runtime.md** — Dev mode, restart server, build checks
+- **20-db-prisma.md** — Schema changes, migrations, data models
+- **30-telegram.md** — grammY framework, message routing, keyboards
+- **40-llm.md** — LLM providers, prompting, API usage
+- **50-git-quality.md** — Git workflow, commit format, code quality
+- **90-definition-of-done.md** — Task completion checklist
+
