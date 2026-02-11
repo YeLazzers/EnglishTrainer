@@ -36,6 +36,8 @@ export async function startCommand(ctx: Context): Promise<void> {
     //   },
     // ]);
 
-    await ctx.reply(message);
+    await ctx.reply(message, {
+      reply_markup: { remove_keyboard: true },
+    });
   }
 }

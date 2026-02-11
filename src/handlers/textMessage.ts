@@ -2,11 +2,18 @@ import { Context } from "grammy";
 import { createLLM } from "../llm";
 import { getState, setState, setProfile, initializeUser, UserState } from "../state";
 import { mainMenuKeyboard } from "../keyboards";
+import { ONBOARDING_SYSTEM_PROMPT } from "../constants";
 
 const llm = createLLM();
 
 export async function handleTextMessage(ctx: Context): Promise<void> {
-  const userId = ctx.from.id;
+  const userId = ctx.from!.id;
+  const messageText = ctx.message?.text;
+
+  if (!messageText) {
+    await ctx.reply("Пожалуйста, отправь текстовое сообщение.");
+    return;
+  }
 
   // Initialize user if needed (restore state from DB)
   await initializeUser(userId);
@@ -17,24 +24,11 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
     const analysis = await llm.chat([
       {
         role: "system",
-        content: `Ты — English Trainer. Пользователь прислал сообщение о себе в рамках онбординга.
-
-Проанализируй сообщение и извлеки:
-1. Уровень английского (A1/A2/B1/B2/C1/C2 — определи приблизительно)
-2. Цели изучения
-3. Интересы и увлечения
-
-Ответь в формате JSON (без markdown, без \`\`\`):
-{
-  "level": "B1",
-  "goals": ["разговорный английский", "для работы"],
-  "interests": ["технологии", "кино"],
-  "summary": "Краткое дружелюбное сообщение пользователю: что ты понял о нём, его уровень, и что теперь можно начинать заниматься. 2-3 предложения."
-}`,
+        content: ONBOARDING_SYSTEM_PROMPT,
       },
       {
         role: "user",
-        content: ctx.message.text,
+        content: messageText,
       },
     ]);
 
@@ -45,7 +39,7 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
         level: parsed.level,
         goals: parsed.goals,
         interests: parsed.interests,
-        rawResponse: ctx.message.text,
+        rawResponse: messageText,
       });
 
       await setState(userId, UserState.MAIN_MENU);
