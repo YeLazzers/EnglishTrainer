@@ -32,14 +32,27 @@ All design and development decisions MUST align with [PRODUCT.md](PRODUCT.md). B
 ```
 /src
   ├── bot.ts              # grammY bot entry point, registers commands & handlers
-  ├── state.ts            # User state & profile management (DB operations)
+  ├── state.ts            # Facade layer - backward compatibility wrapper
   ├── constants.ts        # Hardcoded strings
   ├── keyboards.ts        # UI keyboards (mainMenuKeyboard, etc.)
-  ├── /commands           # Command handlers
+  │
+  ├── /domain             # Domain layer - pure business logic
+  │   ├── types.ts        # UserState enum, UserProfile interface
+  │   └── repository.ts   # UserRepository port (interface)
+  │
+  ├── /adapters           # Adapter layer - infrastructure implementations
+  │   └── /db             # Database adapter (Prisma)
+  │       ├── index.ts    # Factory function createUserRepository()
+  │       ├── prisma.ts   # PrismaUserRepository (implements UserRepository)
+  │       └── mappers.ts  # Type transformations (DB ↔ Domain)
+  │
+  ├── /commands           # Command handlers (application layer)
   │   ├── start.ts        # /start command (onboarding or return user)
   │   └── debug.ts        # /debug command (show user state & profile)
-  ├── /handlers           # Event handlers
+  │
+  ├── /handlers           # Event handlers (application layer)
   │   └── textMessage.ts  # message:text handler (state-based routing)
+  │
   └── /llm                # LLM integrations (OpenAI, Gemini)
       ├── index.ts        # Factory function createLLM()
       ├── openai.ts       # OpenAI client
@@ -67,10 +80,31 @@ Root
   └── PRODUCT.md         # Product document (source of truth)
 ```
 
-### Key Files
-- **`bot.ts`** — Handles /start, /debug commands; routes messages by user state (ONBOARDING → parse with LLM → MAIN_MENU)
-- **`state.ts`** — DB layer for user state & profile persistence
-- **Data Models** — TestUserState (id, state), TestUserProfile (id, level, goals, interests, rawResponse)
+### Architecture: Hexagonal (Ports & Adapters)
+
+The project follows hexagonal architecture for clean separation of concerns:
+
+**Domain Layer** (`/src/domain`):
+- Pure business logic types with zero infrastructure dependencies
+- `types.ts` — `UserState` enum, `UserProfile` interface (domain-centric)
+- `repository.ts` — `UserRepository` port defining data access contract
+
+**Adapter Layer** (`/src/adapters/db`):
+- Infrastructure implementations that satisfy domain ports
+- `prisma.ts` — `PrismaUserRepository` (implements `UserRepository` interface)
+- `mappers.ts` — Type transformations between DB (JSON strings) and Domain (arrays)
+- `index.ts` — Factory function for runtime composition
+
+**Facade Layer** (`/src/state.ts`):
+- Backward compatibility wrapper maintaining existing API
+- All commands/handlers import unchanged (no breaking changes)
+- Internally delegates to `createUserRepository()` from adapters
+
+**Benefits**:
+- Commands/handlers depend on domain interfaces, not DB implementation
+- Testable: mock `UserRepository` without touching database
+- Flexible: swap Prisma for other databases by implementing new adapter
+- Follows same pattern as `/src/llm` (LLMAdapter, createLLM)
 
 ## Following Directives
 See `/directives` folder for detailed guidelines by topic:
