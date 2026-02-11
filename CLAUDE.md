@@ -31,9 +31,15 @@ All design and development decisions MUST align with [PRODUCT.md](PRODUCT.md). B
 
 ```
 /src
-  ├── bot.ts              # grammY bot entry point, command handlers, message routing
+  ├── bot.ts              # grammY bot entry point, registers commands & handlers
   ├── state.ts            # User state & profile management (DB operations)
   ├── constants.ts        # Hardcoded strings
+  ├── keyboards.ts        # UI keyboards (mainMenuKeyboard, etc.)
+  ├── /commands           # Command handlers
+  │   ├── start.ts        # /start command (onboarding or return user)
+  │   └── debug.ts        # /debug command (show user state & profile)
+  ├── /handlers           # Event handlers
+  │   └── textMessage.ts  # message:text handler (state-based routing)
   └── /llm                # LLM integrations (OpenAI, Gemini)
       ├── index.ts        # Factory function createLLM()
       ├── openai.ts       # OpenAI client

@@ -1,18 +1,17 @@
 import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "./generated/prisma/client";
+import type { TestUserProfile } from "./generated/prisma/client";
 
 export enum UserState {
   ONBOARDING = "ONBOARDING",
   MAIN_MENU = "MAIN_MENU",
 }
 
-export interface UserProfile {
-  level: string;
+export type UserProfile = Omit<TestUserProfile, "goals" | "interests"> & {
   goals: string[];
   interests: string[];
-  rawResponse: string;
-}
+};
 
 const connectionString = `${process.env.DATABASE_URL}`;
 
@@ -49,31 +48,33 @@ export async function getProfile(
   if (!record) return undefined;
 
   return {
+    id: record.id,
     level: record.level,
     goals: JSON.parse(record.goals),
     interests: JSON.parse(record.interests),
     rawResponse: record.rawResponse,
+    createdAt: record.createdAt,
+    updatedAt: record.updatedAt,
   };
 }
 
 export async function setProfile(
   userId: number,
-  profile: UserProfile
+  profile: Omit<UserProfile, "id" | "createdAt" | "updatedAt">
 ): Promise<void> {
+  const data = {
+    level: profile.level,
+    goals: JSON.stringify(profile.goals),
+    interests: JSON.stringify(profile.interests),
+    rawResponse: profile.rawResponse,
+  };
+
   await prisma.testUserProfile.upsert({
     where: { id: userId },
-    update: {
-      level: profile.level,
-      goals: JSON.stringify(profile.goals),
-      interests: JSON.stringify(profile.interests),
-      rawResponse: profile.rawResponse,
-    },
+    update: data,
     create: {
       id: userId,
-      level: profile.level,
-      goals: JSON.stringify(profile.goals),
-      interests: JSON.stringify(profile.interests),
-      rawResponse: profile.rawResponse,
+      ...data,
     },
   });
 }
