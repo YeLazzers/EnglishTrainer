@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model TestUserState {
+  id        Int     @id
+  state     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("test_user_state")
+}
+
+model TestUserProfile {
+  id           Int     @id
+  level        String
+  goals        String  // JSON stringified array
+  interests    String  // JSON stringified array
+  rawResponse  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("test_user_profile")
+}
