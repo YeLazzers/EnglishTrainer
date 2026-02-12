@@ -2,15 +2,21 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "ESNext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "baseUrl": ".",
     "paths": {
+      "@domain": ["src/domain"],
       "@domain/*": ["src/domain/*"],
+      "@adapters": ["src/adapters"],
       "@adapters/*": ["src/adapters/*"],
       "@prisma-types": ["src/generated/prisma/client"],
-      "@stateMachine/*": ["src/stateMachine/*"],
+      "@sm": ["src/stateMachine"],
+      "@sm/*": ["src/stateMachine/*"],
+      "@commands": ["src/commands"],
       "@commands/*": ["src/commands/*"],
+      "@handlers": ["src/handlers"],
       "@handlers/*": ["src/handlers/*"],
+      "@llm": ["src/llm"],
       "@llm/*": ["src/llm/*"]
     },
     "lib": ["ES2022"],

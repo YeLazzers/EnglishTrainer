@@ -1,7 +1,8 @@
-import { UserState } from "../../domain/types";
+import { UserState } from "@domain/types";
+import { State } from "@sm/base";
+import { StateHandlerContext, StateHandlerResult } from "@sm/types";
+
 import { mainMenuKeyboard } from "../../keyboards";
-import { State } from "../base";
-import { StateHandlerContext, StateHandlerResult } from "../types";
 
 /**
  * MAIN_MENU состояние

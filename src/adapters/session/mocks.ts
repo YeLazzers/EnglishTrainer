@@ -3,7 +3,7 @@
  * Simulates LLM response for exercise generation
  */
 
-import { CreateSessionData, ExerciseType } from "../../domain/session-types";
+import { CreateSessionData, ExerciseType } from "@domain/session-types";
 
 /**
  * Mock session for Present Perfect (B1 level)

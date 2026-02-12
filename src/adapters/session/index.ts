@@ -2,7 +2,7 @@
  * Factory and re-exports (follows /src/llm/ pattern)
  */
 
-import { SessionRepository } from "../../domain/session-repository";
+import { SessionRepository } from "@domain/session-repository";
 
 import { createRedisClient } from "./redis";
 import { RedisSessionRepository } from "./redis-repository";
@@ -18,11 +18,11 @@ export function createSessionRepository(): SessionRepository {
 }
 
 // Re-export domain types for convenience (follows LLM pattern)
-export type { SessionRepository } from "../../domain/session-repository";
+export type { SessionRepository } from "@domain/session-repository";
 export type {
 	PracticeSessionData,
 	CreateSessionData,
 	Exercise,
 	ExerciseType,
 	SessionAnswer,
-} from "../../domain/session-types";
+} from "@domain/session-types";

@@ -1,12 +1,13 @@
 import { Context } from "grammy";
 
+import { createLLM } from "@llm";
+
 import {
 	ONBOARDING_SYSTEM_PROMPT,
 	GRAMMAR_THEORY_SYSTEM_PROMPT,
 	GRAMMAR_THEORY_USER_PROMPT_TEMPLATE,
 } from "../constants";
 import { mainMenuKeyboard, grammarTheoryKeyboard } from "../keyboards";
-import { createLLM } from "../llm";
 import { getState, setState, setProfile, getProfile, UserState } from "../state";
 
 const llm = createLLM();

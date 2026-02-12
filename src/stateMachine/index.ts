@@ -1,7 +1,8 @@
 import { Context } from "grammy";
 
-import { SessionRepository } from "../domain/session-repository";
-import { UserState, UserProfile } from "../domain/types";
+import { SessionRepository } from "@domain/session-repository";
+import { UserState, UserProfile } from "@domain/types";
+
 import { getState, setState } from "../state";
 
 import { State } from "./base";

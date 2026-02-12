@@ -1,14 +1,14 @@
 // Facade layer - backward compatibility wrapper
 // All existing imports from this file continue to work unchanged
 
-import { createUserRepository } from "./adapters/db";
+import { createUserRepository } from "@adapters/db";
 
 // Create singleton repository instance
 const repository = createUserRepository();
 
 // Re-export types (same as before)
-export { UserState } from "./domain/types";
-export type { UserProfile, CreateUserProfile } from "./domain/types";
+export { UserState } from "@domain/types";
+export type { UserProfile, CreateUserProfile } from "@domain/types";
 
 // Re-export functions with same signatures
 // Bind to repository instance to preserve 'this' context

@@ -1,7 +1,7 @@
 // Mappers: transform between Persistence layer (DB) and Domain layer
 
-import type { UserProfile, CreateUserProfile } from "../../domain/types";
-import type { TestUserProfile } from "../../generated/prisma/client";
+import type { UserProfile, CreateUserProfile } from "@domain/types";
+import type { TestUserProfile } from "@prisma-types";
 
 /**
  * Transform Prisma model (DB layer) to Domain type

@@ -1,6 +1,6 @@
 import { Context } from "grammy";
 
-import { UserState, UserProfile } from "../domain/types";
+import { UserState, UserProfile } from "@domain/types";
 
 /**
  * Context passed to state handlers

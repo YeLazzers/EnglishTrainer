@@ -1,7 +1,7 @@
 import { GenerateContentConfig, GoogleGenAI } from "@google/genai";
 
-import { TokenUsage } from "../logger";
-import { ChatMessage, JSONSchema } from "../types";
+import { TokenUsage } from "@llm/logger";
+import { ChatMessage, JSONSchema } from "@llm/types";
 
 import { BaseLLMAdapter } from "./baseLLM";
 

@@ -1,6 +1,6 @@
-import { UserState } from "../../domain/types";
-import { State } from "../base";
-import { StateHandlerContext, StateHandlerResult } from "../types";
+import { UserState } from "@domain/types";
+import { State } from "@sm/base";
+import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 /**
  * STATS состояние

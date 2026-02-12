@@ -8,7 +8,7 @@ export async function debugCommand(ctx: Context): Promise<void> {
 		await ctx.reply("Ошибка: не удалось определить пользователя");
 		return;
 	}
-	
+
 	const state = (await getState(userId)) ?? "NONE";
 	const profile = await getProfile(userId);
 

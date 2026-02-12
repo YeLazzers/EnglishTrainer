@@ -1,6 +1,6 @@
 // Factory and re-exports (follows /src/llm/ pattern)
 
-import { UserRepository } from "../../domain/repository";
+import { UserRepository } from "@domain/repository";
 
 import { PrismaUserRepository } from "./prisma";
 
@@ -14,5 +14,5 @@ export function createUserRepository(): UserRepository {
 }
 
 // Re-export domain types for convenience
-export type { UserRepository } from "../../domain/repository";
-export type { UserState, UserProfile, CreateUserProfile } from "../../domain/types";
+export type { UserRepository } from "@domain/repository";
+export type { UserState, UserProfile, CreateUserProfile } from "@domain/types";

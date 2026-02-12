@@ -1,11 +1,12 @@
 import { Context } from "grammy";
 
+import { UserState, UserProfile } from "@domain/types";
+import { createLLM, JSONSchema } from "@llm";
+import { State } from "@sm/base";
+import { StateHandlerContext, StateHandlerResult } from "@sm/types";
+
 import { GRAMMAR_THEORY_SYSTEM_PROMPT, GRAMMAR_THEORY_USER_PROMPT_TEMPLATE } from "../../constants";
-import { UserState, UserProfile } from "../../domain/types";
 import { grammarTheoryKeyboard } from "../../keyboards";
-import { createLLM, JSONSchema } from "../../llm";
-import { State } from "../base";
-import { StateHandlerContext, StateHandlerResult } from "../types";
 
 /**
  * GRAMMAR_THEORY состояние

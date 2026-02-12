@@ -1,5 +1,5 @@
-import { logLLMInteraction, TokenUsage } from "../logger";
-import { ChatMessage, LLMAdapter, JSONSchema } from "../types";
+import { logLLMInteraction, TokenUsage } from "@llm/logger";
+import { ChatMessage, LLMAdapter, JSONSchema } from "@llm/types";
 
 export abstract class BaseLLMAdapter implements LLMAdapter {
 	protected model: string;

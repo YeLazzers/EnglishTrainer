@@ -1,7 +1,7 @@
-import { SessionRepository } from "../../domain/session-repository";
-import { UserState } from "../../domain/types";
-import { State } from "../base";
-import { StateHandlerContext, StateHandlerResult } from "../types";
+import { SessionRepository } from "@domain/session-repository";
+import { UserState } from "@domain/types";
+import { State } from "@sm/base";
+import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 /**
  * PRACTICE_RESULT состояние

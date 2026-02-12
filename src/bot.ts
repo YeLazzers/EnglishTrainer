@@ -1,12 +1,13 @@
 import { Bot } from "grammy";
 
-import { createSessionRepository } from "./adapters/session";
-import { debugCommand } from "./commands/debug";
-import { createDebugRedisCommand } from "./commands/debugRedis";
-import { createStartCommand } from "./commands/start";
-import { createMessageHandler } from "./handlers/messageWithStateMachine";
+import { createSessionRepository } from "@adapters/session";
+import { debugCommand } from "@commands/debug";
+import { createDebugRedisCommand } from "@commands/debugRedis";
+import { createStartCommand } from "@commands/start";
+import { createMessageHandler } from "@handlers/messageWithStateMachine";
+import { createStateMachine } from "@sm";
+
 import { getProfile } from "./state";
-import { createStateMachine } from "./stateMachine";
 
 const token = process.env.BOT_TOKEN;
 if (!token) {

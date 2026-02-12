@@ -1,8 +1,8 @@
 import Redis from "ioredis";
 import { v4 as uuidv4 } from "uuid";
 
-import { SessionRepository } from "../../domain/session-repository";
-import { PracticeSessionData, CreateSessionData, SessionAnswer } from "../../domain/session-types";
+import { SessionRepository } from "@domain/session-repository";
+import { PracticeSessionData, CreateSessionData, SessionAnswer } from "@domain/session-types";
 
 import { serializeSession, deserializeSession } from "./mappers";
 

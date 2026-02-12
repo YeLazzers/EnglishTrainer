@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 import { ChatCompletion, ChatCompletionCreateParamsBase } from "openai/resources/chat/completions";
 
-import { TokenUsage } from "../logger";
-import { ChatMessage, JSONSchema } from "../types";
+import { TokenUsage } from "@llm/logger";
+import { ChatMessage, JSONSchema } from "@llm/types";
 
 import { BaseLLMAdapter } from "./baseLLM";
 

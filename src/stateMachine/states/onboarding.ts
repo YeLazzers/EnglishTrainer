@@ -1,9 +1,10 @@
+import { UserState } from "@domain/types";
+import { createLLM } from "@llm";
+import { State } from "@sm/base";
+import { StateHandlerContext, StateHandlerResult } from "@sm/types";
+
 import { ONBOARDING_SYSTEM_PROMPT, ONBOARDING_RESPONSE_MESSAGE } from "../../constants";
-import { UserState } from "../../domain/types";
-import { createLLM } from "../../llm";
 import { setProfile } from "../../state";
-import { State } from "../base";
-import { StateHandlerContext, StateHandlerResult } from "../types";
 
 /**
  * ONBOARDING состояние

@@ -1,12 +1,13 @@
 import { InlineKeyboard } from "grammy";
 
-import { getRandomMockSession } from "../../adapters/session/mocks";
-import { SessionRepository } from "../../domain/session-repository";
-import { Exercise, ExerciseType } from "../../domain/session-types";
-import { UserState } from "../../domain/types";
+import { getRandomMockSession } from "@adapters/session/mocks";
+import { SessionRepository } from "@domain/session-repository";
+import { Exercise, ExerciseType } from "@domain/session-types";
+import { UserState } from "@domain/types";
+import { State } from "@sm/base";
+import { StateHandlerContext, StateHandlerResult } from "@sm/types";
+
 import { grammarPracticeKeyboard } from "../../keyboards";
-import { State } from "../base";
-import { StateHandlerContext, StateHandlerResult } from "../types";
 
 /**
  * GRAMMAR_PRACTICE состояние

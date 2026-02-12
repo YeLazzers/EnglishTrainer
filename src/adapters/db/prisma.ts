@@ -3,9 +3,9 @@
 import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
-import { UserRepository } from "../../domain/repository";
-import { UserState, UserProfile, CreateUserProfile } from "../../domain/types";
-import { PrismaClient } from "../../generated/prisma/client";
+import { UserRepository } from "@domain/repository";
+import { UserState, UserProfile, CreateUserProfile } from "@domain/types";
+import { PrismaClient } from "@prisma-types";
 
 import { toDomainProfile, toDbProfileData } from "./mappers";
 

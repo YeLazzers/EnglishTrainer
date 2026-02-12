@@ -1,7 +1,8 @@
 import { Context } from "grammy";
 
+import { StateMachine } from "@sm";
+
 import { getProfile } from "../state";
-import { StateMachine } from "../stateMachine";
 
 /**
  * Обработчик текстовых сообщений со State Machine

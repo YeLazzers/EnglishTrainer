@@ -1,4 +1,4 @@
-import { UserState } from "../domain/types";
+import { UserState } from "@domain/types";
 
 import { StateConfig, StateHandlerContext, StateHandlerResult } from "./types";
 

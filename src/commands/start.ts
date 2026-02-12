@@ -1,8 +1,9 @@
 import { Context } from "grammy";
 
+import { StateMachine } from "@sm";
+
 import { mainMenuKeyboard } from "../keyboards";
 import { getProfile, UserState } from "../state";
-import { StateMachine } from "../stateMachine";
 
 /**
  * Фабрика для создания обработчика команды /start
@@ -15,7 +16,7 @@ export function createStartCommand(stateMachine: StateMachine) {
 			await ctx.reply("Ошибка: не удалось определить пользователя");
 			return;
 		}
-		
+
 		const existingProfile = await getProfile(userId);
 
 		if (existingProfile) {

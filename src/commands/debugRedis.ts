@@ -1,7 +1,7 @@
 import { Context } from "grammy";
 
-import { SessionRepository } from "../domain/session-repository";
-import { ExerciseType } from "../domain/session-types";
+import { SessionRepository } from "@domain/session-repository";
+import { ExerciseType } from "@domain/session-types";
 
 /**
  * Команда /debug_redis для отладки текущей сессии в Redis
