@@ -10,12 +10,12 @@ import { PracticeSessionData } from "../../domain/session-types";
  * Handles Date ISO string conversion
  */
 export function serializeSession(session: PracticeSessionData): string {
-  return JSON.stringify({
-    ...session,
-    startTime: session.startTime.toISOString(),
-    endTime: session.endTime?.toISOString(),
-    completedAt: session.completedAt?.toISOString(),
-  });
+	return JSON.stringify({
+		...session,
+		startTime: session.startTime.toISOString(),
+		endTime: session.endTime?.toISOString(),
+		completedAt: session.completedAt?.toISOString(),
+	});
 }
 
 /**
@@ -23,12 +23,12 @@ export function serializeSession(session: PracticeSessionData): string {
  * Handles Date object reconstruction
  */
 export function deserializeSession(data: string): PracticeSessionData {
-  const parsed = JSON.parse(data);
+	const parsed = JSON.parse(data);
 
-  return {
-    ...parsed,
-    startTime: new Date(parsed.startTime),
-    endTime: parsed.endTime ? new Date(parsed.endTime) : undefined,
-    completedAt: parsed.completedAt ? new Date(parsed.completedAt) : undefined,
-  };
+	return {
+		...parsed,
+		startTime: new Date(parsed.startTime),
+		endTime: parsed.endTime ? new Date(parsed.endTime) : undefined,
+		completedAt: parsed.completedAt ? new Date(parsed.completedAt) : undefined,
+	};
 }

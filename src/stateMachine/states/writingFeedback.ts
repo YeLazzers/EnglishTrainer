@@ -14,31 +14,26 @@ import { StateHandlerContext, StateHandlerResult } from "../types";
  * - "Меню" → MAIN_MENU
  */
 export class WritingFeedbackState extends State {
-  readonly type = UserState.WRITING_FEEDBACK;
+	readonly type = UserState.WRITING_FEEDBACK;
 
-  async onEnter(context: StateHandlerContext): Promise<void> {
-    // TODO: Загрузить текст пользователя из предыдущего состояния
-    // и отправить LLM запрос на анализ
-  }
+	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
+		const { messageText } = context;
 
-  async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
-    const { messageText } = context;
+		switch (messageText) {
+			case "Написать ещё":
+				return {
+					nextState: UserState.FREE_WRITING,
+					handled: true,
+				};
 
-    switch (messageText) {
-      case "Написать ещё":
-        return {
-          nextState: UserState.FREE_WRITING,
-          handled: true,
-        };
+			case "Меню":
+				return {
+					nextState: UserState.MAIN_MENU,
+					handled: true,
+				};
 
-      case "Меню":
-        return {
-          nextState: UserState.MAIN_MENU,
-          handled: true,
-        };
-
-      default:
-        return { handled: true };
-    }
-  }
+			default:
+				return { handled: true };
+		}
+	}
 }

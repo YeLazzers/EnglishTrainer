@@ -1,6 +1,7 @@
 import eslint from "@eslint/js";
 import tseslint from "typescript-eslint";
 import prettier from "eslint-config-prettier";
+import perfectionist from "eslint-plugin-perfectionist";
 
 export default tseslint.config(
   {
@@ -21,6 +22,9 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
+    plugins: {
+      perfectionist,
+    },
     languageOptions: {
       parserOptions: {
         projectService: true,
@@ -28,6 +32,22 @@ export default tseslint.config(
       }
     },
     rules: {
+      // Import sorting (perfectionist)
+      "perfectionist/sort-imports": [
+        "error",
+        {
+          type: "natural",
+          groups: [
+            "builtin",
+            "external",
+            "internal",
+            "parent",
+            "sibling",
+            "index",
+          ],
+        },
+      ],
+
       // TypeScript rules - only use rules that exist in this version
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-floating-promises": "error",

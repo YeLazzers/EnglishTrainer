@@ -4,36 +4,36 @@
  */
 
 export enum ExerciseType {
-  SINGLE_CHOICE = "single_choice",
-  FILL_IN_BLANK = "fill_in_blank",
+	SINGLE_CHOICE = "single_choice",
+	FILL_IN_BLANK = "fill_in_blank",
 }
 
 export interface Exercise {
-  id: string; // Unique exercise ID
-  type: ExerciseType;
-  question: string; // Question text in English
-  options?: string[]; // For single choice (2-4 options)
-  correctAnswer: string;
-  explanation?: string; // Why this answer is correct
-  userAnswer?: string; // User's submitted answer (undefined until answered)
-  isCorrect?: boolean; // Result after checking answer
+	id: string; // Unique exercise ID
+	type: ExerciseType;
+	question: string; // Question text in English
+	options?: string[]; // For single choice (2-4 options)
+	correctAnswer: string;
+	explanation?: string; // Why this answer is correct
+	userAnswer?: string; // User's submitted answer (undefined until answered)
+	isCorrect?: boolean; // Result after checking answer
 }
 
 export interface PracticeSessionData {
-  userId: number; // Telegram user ID
-  sessionId: string; // Unique session ID (UUID)
-  grammarRule: string; // Which grammar rule (e.g., "Present Perfect")
-  level: string; // User level (A1, B2, etc.)
+	userId: number; // Telegram user ID
+	sessionId: string; // Unique session ID (UUID)
+	grammarRule: string; // Which grammar rule (e.g., "Present Perfect")
+	level: string; // User level (A1, B2, etc.)
 
-  exercises: Exercise[]; // All exercises in this session
-  currentExerciseIndex: number; // Current question (0-based)
+	exercises: Exercise[]; // All exercises in this session
+	currentExerciseIndex: number; // Current question (0-based)
 
-  correct: number; // Number of correct answers
-  total: number; // Total attempted exercises
+	correct: number; // Number of correct answers
+	total: number; // Total attempted exercises
 
-  startTime: Date;
-  endTime?: Date;
-  completedAt?: Date;
+	startTime: Date;
+	endTime?: Date;
+	completedAt?: Date;
 }
 
 /**
@@ -41,14 +41,14 @@ export interface PracticeSessionData {
  * Omits auto-generated fields: sessionId, currentExerciseIndex, correct, total, startTime
  */
 export type CreateSessionData = Omit<
-  PracticeSessionData,
-  "sessionId" | "currentExerciseIndex" | "correct" | "total" | "startTime"
+	PracticeSessionData,
+	"sessionId" | "currentExerciseIndex" | "correct" | "total" | "startTime"
 >;
 
 /**
  * User's answer to an exercise
  */
 export interface SessionAnswer {
-  exerciseId: string;
-  userAnswer: string;
+	exerciseId: string;
+	userAnswer: string;
 }

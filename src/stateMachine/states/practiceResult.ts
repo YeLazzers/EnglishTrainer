@@ -1,7 +1,7 @@
+import { SessionRepository } from "../../domain/session-repository";
 import { UserState } from "../../domain/types";
 import { State } from "../base";
 import { StateHandlerContext, StateHandlerResult } from "../types";
-import { SessionRepository } from "../../domain/session-repository";
 
 /**
  * PRACTICE_RESULT состояние
@@ -15,34 +15,30 @@ import { SessionRepository } from "../../domain/session-repository";
  * - "Меню" → MAIN_MENU
  */
 export class PracticeResultState extends State {
-  readonly type = UserState.PRACTICE_RESULT;
+	readonly type = UserState.PRACTICE_RESULT;
 
-  constructor(private sessionRepository: SessionRepository) {
-    super();
-  }
+	constructor(private sessionRepository: SessionRepository) {
+		super();
+	}
 
-  async onEnter(context: StateHandlerContext): Promise<void> {
-    // TODO: Загрузить результаты практики и отправить итоговое сообщение
-  }
+	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
+		const { messageText } = context;
 
-  async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
-    const { messageText } = context;
+		switch (messageText) {
+			case "Ещё практика":
+				return {
+					nextState: UserState.GRAMMAR_PRACTICE,
+					handled: true,
+				};
 
-    switch (messageText) {
-      case "Ещё практика":
-        return {
-          nextState: UserState.GRAMMAR_PRACTICE,
-          handled: true,
-        };
+			case "Меню":
+				return {
+					nextState: UserState.MAIN_MENU,
+					handled: true,
+				};
 
-      case "Меню":
-        return {
-          nextState: UserState.MAIN_MENU,
-          handled: true,
-        };
-
-      default:
-        return { handled: true };
-    }
-  }
+			default:
+				return { handled: true };
+		}
+	}
 }

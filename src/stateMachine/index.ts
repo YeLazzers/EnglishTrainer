@@ -1,19 +1,21 @@
 import { Context } from "grammy";
-import { UserState, UserProfile } from "../domain/types";
+
 import { SessionRepository } from "../domain/session-repository";
+import { UserState, UserProfile } from "../domain/types";
 import { getState, setState } from "../state";
+
 import { State } from "./base";
-import { StateHandlerContext, StateHandlerResult } from "./types";
 import {
-  OnboardingState,
-  MainMenuState,
-  GrammarTheoryState,
-  GrammarPracticeState,
-  PracticeResultState,
-  FreeWritingState,
-  WritingFeedbackState,
-  StatsState,
+	OnboardingState,
+	MainMenuState,
+	GrammarTheoryState,
+	GrammarPracticeState,
+	PracticeResultState,
+	FreeWritingState,
+	WritingFeedbackState,
+	StatsState,
 } from "./states";
+import { StateHandlerContext } from "./types";
 
 /**
  * State Machine - координатор переходов между состояниями
@@ -33,197 +35,207 @@ import {
  *   3. Вызывает onEnter нового состояния
  */
 export class StateMachine {
-  private states: Map<UserState, State> = new Map();
+	private states: Map<UserState, State> = new Map();
 
-  /**
-   * Регистрирует обработчик для состояния
-   */
-  register(state: State): void {
-    this.states.set(state.type, state);
-  }
+	/**
+	 * Регистрирует обработчик для состояния
+	 */
+	register(state: State): void {
+		this.states.set(state.type, state);
+	}
 
-  /**
-   * Обрабатывает входящее сообщение пользователя
-   *
-   * @param ctx grammy Context
-   * @param profile Профиль пользователя (может быть undefined для новых пользователей)
-   */
-  async handleMessage(ctx: Context, profile: UserProfile | undefined): Promise<void> {
-    const userId = ctx.from!.id;
-    const messageText = ctx.message?.text;
+	/**
+	 * Обрабатывает входящее сообщение пользователя
+	 *
+	 * @param ctx grammy Context
+	 * @param profile Профиль пользователя (может быть undefined для новых пользователей)
+	 */
+	async handleMessage(ctx: Context, profile: UserProfile | undefined): Promise<void> {
+		const userId = ctx.from?.id;
+		if (!userId) {
+			await ctx.reply("Ошибка: не удалось определить пользователя");
+			return;
+		}
 
-    if (!messageText) {
-      await ctx.reply("Пожалуйста, отправь текстовое сообщение.");
-      return;
-    }
+		const messageText = ctx.message?.text;
 
-    // Получаем текущее состояние пользователя
-    const currentState = await getState(userId);
+		if (!messageText) {
+			await ctx.reply("Пожалуйста, отправь текстовое сообщение.");
+			return;
+		}
 
-    // Если пользователя нет в БД, инициализируем в ONBOARDING
-    if (!currentState) {
-      // changeStateTo вызовет onEnter для ONBOARDING и отправит приветствие
-      await this.changeStateTo(userId, UserState.ONBOARDING, ctx, profile);
-      return; // Не обрабатываем первое сообщение, пользователь должен прочитать приветствие
-    }
+		// Получаем текущее состояние пользователя
+		const currentState = await getState(userId);
 
-    // Логирование (опционально, можно закомментировать)
-    if (process.env.DEBUG_STATE_MACHINE === "true") {
-      console.log(`[Message] User ${userId} (${currentState ?? "NEW"}) → processing message`);
-    }
+		// Если пользователя нет в БД, инициализируем в ONBOARDING
+		if (!currentState) {
+			// changeStateTo вызовет onEnter для ONBOARDING и отправит приветствие
+			await this.changeStateTo(userId, UserState.ONBOARDING, ctx, profile);
+			return; // Не обрабатываем первое сообщение, пользователь должен прочитать приветствие
+		}
 
-    // Находим обработчик для этого состояния
-    const stateHandler = this.states.get(currentState);
-    if (!stateHandler) {
-      console.error(`No handler registered for state: ${currentState}`);
-      await ctx.reply("Внутренняя ошибка. Выполни /start.");
-      return;
-    }
+		// Логирование (опционально, можно закомментировать)
+		if (process.env.DEBUG_STATE_MACHINE === "true") {
+			console.log(`[Message] User ${userId} (${currentState ?? "NEW"}) → processing message`);
+		}
 
-    // Создаем контекст, который будет переиспользоваться на протяжении цикла
-    const context: StateHandlerContext = {
-      ctx,
-      userId,
-      messageText,
-      currentState,
-      profile,
-    };
+		// Находим обработчик для этого состояния
+		const stateHandler = this.states.get(currentState);
+		if (!stateHandler) {
+			console.error(`No handler registered for state: ${currentState}`);
+			await ctx.reply("Внутренняя ошибка. Выполни /start.");
+			return;
+		}
 
-    const result = await stateHandler.handle(context);
+		// Создаем контекст, который будет переиспользоваться на протяжении цикла
+		const context: StateHandlerContext = {
+			ctx,
+			userId,
+			messageText,
+			currentState,
+			profile,
+		};
 
-    // Если обработчик вернул переход в новое состояние
-    if (result.nextState && result.nextState !== currentState) {
-      await this.transition(currentState, result.nextState, context);
-    }
-  }
+		const result = await stateHandler.handle(context);
 
-  /**
-   * Обрабатывает callback_query (нажатия на inline_buttons)
-   *
-   * @param ctx grammy Context
-   * @param profile Профиль пользователя
-   */
-  async handleCallback(ctx: Context, profile: UserProfile | undefined): Promise<void> {
-    const userId = ctx.from!.id;
-    const callbackData = ctx.callbackQuery?.data;
+		// Если обработчик вернул переход в новое состояние
+		if (result.nextState && result.nextState !== currentState) {
+			await this.transition(currentState, result.nextState, context);
+		}
+	}
 
-    if (!callbackData) {
-      await ctx.answerCallbackQuery({ text: "Ошибка обработки" });
-      return;
-    }
+	/**
+	 * Обрабатывает callback_query (нажатия на inline_buttons)
+	 *
+	 * @param ctx grammy Context
+	 * @param profile Профиль пользователя
+	 */
+	async handleCallback(ctx: Context, profile: UserProfile | undefined): Promise<void> {
+		const userId = ctx.from?.id;
+		if (!userId) {
+			await ctx.reply("Ошибка: не удалось определить пользователя");
+			return;
+		}
 
-    try {
-      // Получаем текущее состояние пользователя
-      const currentState = await getState(userId);
+		const callbackData = ctx.callbackQuery?.data;
 
-      if (!currentState) {
-        await ctx.answerCallbackQuery({ text: "Начни новую практику" });
-        return;
-      }
+		if (!callbackData) {
+			await ctx.answerCallbackQuery({ text: "Ошибка обработки" });
+			return;
+		}
 
-      if (process.env.DEBUG_STATE_MACHINE === "true") {
-        console.log(`[Callback] User ${userId} (${currentState}) → data: ${callbackData}`);
-      }
+		try {
+			// Получаем текущее состояние пользователя
+			const currentState = await getState(userId);
 
-      // Находим обработчик для этого состояния
-      const stateHandler = this.states.get(currentState);
-      if (!stateHandler) {
-        console.error(`No handler registered for state: ${currentState}`);
-        await ctx.answerCallbackQuery({ text: "Ошибка" });
-        return;
-      }
+			if (!currentState) {
+				await ctx.answerCallbackQuery({ text: "Начни новую практику" });
+				return;
+			}
 
-      // Создаем контекст с callback_data вместо messageText
-      const context: StateHandlerContext = {
-        ctx,
-        userId,
-        messageText: "", // Для callback_query messageText пуст
-        callbackData, // Передаем callback_data
-        currentState,
-        profile,
-      };
+			if (process.env.DEBUG_STATE_MACHINE === "true") {
+				console.log(`[Callback] User ${userId} (${currentState}) → data: ${callbackData}`);
+			}
 
-      const result = await stateHandler.handle(context);
+			// Находим обработчик для этого состояния
+			const stateHandler = this.states.get(currentState);
+			if (!stateHandler) {
+				console.error(`No handler registered for state: ${currentState}`);
+				await ctx.answerCallbackQuery({ text: "Ошибка" });
+				return;
+			}
 
-      // Если обработчик вернул переход в новое состояние
-      if (result.nextState && result.nextState !== currentState) {
-        await this.transition(currentState, result.nextState, context);
-      }
+			// Создаем контекст с callback_data вместо messageText
+			const context: StateHandlerContext = {
+				ctx,
+				userId,
+				messageText: "", // Для callback_query messageText пуст
+				callbackData, // Передаем callback_data
+				currentState,
+				profile,
+			};
 
-      await ctx.answerCallbackQuery();
-    } catch (error) {
-      console.error(`[Callback] Error for user ${userId}:`, error);
-      await ctx.answerCallbackQuery({ text: "Произошла ошибка" });
-    }
-  }
+			const result = await stateHandler.handle(context);
 
-  /**
-   * Явно изменяет состояние пользователя
-   * Используется для команд и других явных переходов
-   *
-   * @param userId ID пользователя
-   * @param nextState Новое состояние
-   * @param ctx grammy Context
-   * @param profile Профиль пользователя (опционально)
-   */
-  async changeStateTo(
-    userId: number,
-    nextState: UserState,
-    ctx: Context,
-    profile: UserProfile | undefined = undefined
-  ): Promise<void> {
-    const currentState = await getState(userId);
+			// Если обработчик вернул переход в новое состояние
+			if (result.nextState && result.nextState !== currentState) {
+				await this.transition(currentState, result.nextState, context);
+			}
 
-    // Создаем контекст для обработчиков
-    const context: StateHandlerContext = {
-      ctx,
-      userId,
-      messageText: "",
-      currentState: currentState || nextState,
-      profile,
-    };
+			await ctx.answerCallbackQuery();
+		} catch (error) {
+			console.error(`[Callback] Error for user ${userId}:`, error);
+			await ctx.answerCallbackQuery({ text: "Произошла ошибка" });
+		}
+	}
 
-    // Выполняем переход (fromState может быть undefined для новых пользователей)
-    await this.transition(currentState || undefined, nextState, context);
-  }
+	/**
+	 * Явно изменяет состояние пользователя
+	 * Используется для команд и других явных переходов
+	 *
+	 * @param userId ID пользователя
+	 * @param nextState Новое состояние
+	 * @param ctx grammy Context
+	 * @param profile Профиль пользователя (опционально)
+	 */
+	async changeStateTo(
+		userId: number,
+		nextState: UserState,
+		ctx: Context,
+		profile: UserProfile | undefined = undefined
+	): Promise<void> {
+		const currentState = await getState(userId);
 
-  /**
-   * Выполняет переход в новое состояние
-   *
-   * Процесс:
-   * 1. onExit текущего состояния (если оно существует)
-   * 2. setState в БД
-   * 3. onEnter нового состояния
-   *
-   * @param fromState Состояние, из которого переходим (опционально для инициализации)
-   * @param toState Состояние, в которое переходим
-   * @param context Контекст с информацией о пользователе и Telegram
-   */
-  private async transition(
-    fromState: UserState | undefined,
-    toState: UserState,
-    context: StateHandlerContext
-  ): Promise<void> {
-    // Выход из текущего состояния (если оно было)
-    if (fromState) {
-      const currentStateHandler = this.states.get(fromState);
-      if (currentStateHandler) {
-        await currentStateHandler.onExit(context);
-      }
-    }
+		// Создаем контекст для обработчиков
+		const context: StateHandlerContext = {
+			ctx,
+			userId,
+			messageText: "",
+			currentState: currentState || nextState,
+			profile,
+		};
 
-    // Сохраняем новое состояние
-    await setState(context.userId, toState);
+		// Выполняем переход (fromState может быть undefined для новых пользователей)
+		await this.transition(currentState || undefined, nextState, context);
+	}
 
-    // Обновляем контекст с новым состоянием
-    context.currentState = toState;
+	/**
+	 * Выполняет переход в новое состояние
+	 *
+	 * Процесс:
+	 * 1. onExit текущего состояния (если оно существует)
+	 * 2. setState в БД
+	 * 3. onEnter нового состояния
+	 *
+	 * @param fromState Состояние, из которого переходим (опционально для инициализации)
+	 * @param toState Состояние, в которое переходим
+	 * @param context Контекст с информацией о пользователе и Telegram
+	 */
+	private async transition(
+		fromState: UserState | undefined,
+		toState: UserState,
+		context: StateHandlerContext
+	): Promise<void> {
+		// Выход из текущего состояния (если оно было)
+		if (fromState) {
+			const currentStateHandler = this.states.get(fromState);
+			if (currentStateHandler) {
+				await currentStateHandler.onExit(context);
+			}
+		}
 
-    // Вход в новое состояние
-    const newStateHandler = this.states.get(toState);
-    if (newStateHandler) {
-      await newStateHandler.onEnter(context);
-    }
-  }
+		// Сохраняем новое состояние
+		await setState(context.userId, toState);
+
+		// Обновляем контекст с новым состоянием
+		context.currentState = toState;
+
+		// Вход в новое состояние
+		const newStateHandler = this.states.get(toState);
+		if (newStateHandler) {
+			await newStateHandler.onEnter(context);
+		}
+	}
 }
 
 /**
@@ -232,19 +244,19 @@ export class StateMachine {
  * @param sessionRepository SessionRepository для управления практическими сессиями
  */
 export function createStateMachine(sessionRepository: SessionRepository): StateMachine {
-  const machine = new StateMachine();
+	const machine = new StateMachine();
 
-  // Регистрируем все состояния
-  machine.register(new OnboardingState());
-  machine.register(new MainMenuState());
-  machine.register(new GrammarTheoryState());
-  machine.register(new GrammarPracticeState(sessionRepository));
-  machine.register(new PracticeResultState(sessionRepository));
-  machine.register(new FreeWritingState());
-  machine.register(new WritingFeedbackState());
-  machine.register(new StatsState());
+	// Регистрируем все состояния
+	machine.register(new OnboardingState());
+	machine.register(new MainMenuState());
+	machine.register(new GrammarTheoryState());
+	machine.register(new GrammarPracticeState(sessionRepository));
+	machine.register(new PracticeResultState(sessionRepository));
+	machine.register(new FreeWritingState());
+	machine.register(new WritingFeedbackState());
+	machine.register(new StatsState());
 
-  console.log("[Boot] State Machine initialized");
+	console.log("[Boot] State Machine initialized");
 
-  return machine;
+	return machine;
 }

@@ -16,36 +16,32 @@ import { StateHandlerContext, StateHandlerResult } from "../types";
  * - "Меню" → MAIN_MENU
  */
 export class StatsState extends State {
-  readonly type = UserState.STATS;
+	readonly type = UserState.STATS;
 
-  async onEnter(context: StateHandlerContext): Promise<void> {
-    // TODO: Загрузить статистику пользователя и отправить основную сводку
-  }
+	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
+		const { messageText } = context;
 
-  async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
-    const { messageText } = context;
+		switch (messageText) {
+			case "По правилам":
+				// TODO: Показать детальную статистику по правилам
+				return { handled: true };
 
-    switch (messageText) {
-      case "По правилам":
-        // TODO: Показать детальную статистику по правилам
-        return { handled: true };
+			case "По сессиям":
+				// TODO: Показать историю сессий
+				return { handled: true };
 
-      case "По сессиям":
-        // TODO: Показать историю сессий
-        return { handled: true };
+			case "Рекомендации":
+				// TODO: Показать рекомендуемые правила для практики
+				return { handled: true };
 
-      case "Рекомендации":
-        // TODO: Показать рекомендуемые правила для практики
-        return { handled: true };
+			case "Меню":
+				return {
+					nextState: UserState.MAIN_MENU,
+					handled: true,
+				};
 
-      case "Меню":
-        return {
-          nextState: UserState.MAIN_MENU,
-          handled: true,
-        };
-
-      default:
-        return { handled: true };
-    }
-  }
+			default:
+				return { handled: true };
+		}
+	}
 }

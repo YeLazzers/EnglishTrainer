@@ -1,4 +1,5 @@
 import { Context } from "grammy";
+
 import { UserState, UserProfile } from "../domain/types";
 
 /**
@@ -6,12 +7,12 @@ import { UserState, UserProfile } from "../domain/types";
  * Содержит все необходимое для обработки сообщения в состоянии
  */
 export interface StateHandlerContext {
-  ctx: Context;
-  userId: number;
-  messageText: string; // Для текстовых сообщений
-  callbackData?: string; // Для callback_query (нажатия на кнопки)
-  currentState: UserState;
-  profile: UserProfile | undefined; // Профиль пользователя (может быть undefined в ONBOARDING)
+	ctx: Context;
+	userId: number;
+	messageText: string; // Для текстовых сообщений
+	callbackData?: string; // Для callback_query (нажатия на кнопки)
+	currentState: UserState;
+	profile: UserProfile | undefined; // Профиль пользователя (может быть undefined в ONBOARDING)
 }
 
 /**
@@ -19,8 +20,8 @@ export interface StateHandlerContext {
  * Определяет переход в новое состояние или остаток в текущем
  */
 export interface StateHandlerResult {
-  nextState?: UserState; // Если не указано, остаемся в текущем состоянии
-  handled: boolean; // Было ли сообщение обработано
+	nextState?: UserState; // Если не указано, остаемся в текущем состоянии
+	handled: boolean; // Было ли сообщение обработано
 }
 
 /**
@@ -33,8 +34,8 @@ export type StateMessageHandler = (context: StateHandlerContext) => Promise<Stat
  * Все методы принимают единый StateHandlerContext
  */
 export interface StateConfig {
-  type: UserState;
-  onEnter?: (context: StateHandlerContext) => Promise<void>;
-  handle: StateMessageHandler;
-  onExit?: (context: StateHandlerContext) => Promise<void>;
+	type: UserState;
+	onEnter?: (context: StateHandlerContext) => Promise<void>;
+	handle: StateMessageHandler;
+	onExit?: (context: StateHandlerContext) => Promise<void>;
 }

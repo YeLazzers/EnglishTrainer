@@ -1,15 +1,16 @@
 import { Bot } from "grammy";
+
+import { createSessionRepository } from "./adapters/session";
 import { debugCommand } from "./commands/debug";
 import { createDebugRedisCommand } from "./commands/debugRedis";
 import { createStartCommand } from "./commands/start";
 import { createMessageHandler } from "./handlers/messageWithStateMachine";
-import { createStateMachine } from "./stateMachine";
-import { createSessionRepository } from "./adapters/session";
 import { getProfile } from "./state";
+import { createStateMachine } from "./stateMachine";
 
 const token = process.env.BOT_TOKEN;
 if (!token) {
-  throw new Error("BOT_TOKEN environment variable is not set");
+	throw new Error("BOT_TOKEN environment variable is not set");
 }
 
 const bot = new Bot(token);
@@ -31,19 +32,19 @@ bot.on("message:text", createMessageHandler(stateMachine));
 
 // Регистрировать обработчик callback_query (нажатия на inline_buttons)
 bot.on("callback_query", async (ctx) => {
-  const userId = ctx.from?.id;
-  if (!userId) {
-    await ctx.answerCallbackQuery({ text: "Ошибка: не удалось определить пользователя" });
-    return;
-  }
+	const userId = ctx.from?.id;
+	if (!userId) {
+		await ctx.answerCallbackQuery({ text: "Ошибка: не удалось определить пользователя" });
+		return;
+	}
 
-  try {
-    const profile = await getProfile(userId);
-    await stateMachine.handleCallback(ctx, profile);
-  } catch (error) {
-    console.error(`[CallbackQuery] Error for user ${userId}:`, error);
-    await ctx.answerCallbackQuery({ text: "Произошла ошибка при обработке ответа" });
-  }
+	try {
+		const profile = await getProfile(userId);
+		await stateMachine.handleCallback(ctx, profile);
+	} catch (error) {
+		console.error(`[CallbackQuery] Error for user ${userId}:`, error);
+		await ctx.answerCallbackQuery({ text: "Произошла ошибка при обработке ответа" });
+	}
 });
 
 void bot.start();
