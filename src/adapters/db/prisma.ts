@@ -69,11 +69,4 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
-  async initializeUser(userId: number): Promise<void> {
-    const existingState = await this.getState(userId);
-
-    if (!existingState) {
-      await this.setState(userId, UserState.MAIN_MENU);
-    }
-  }
 }

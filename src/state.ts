@@ -16,4 +16,3 @@ export const getState = repository.getState.bind(repository);
 export const setState = repository.setState.bind(repository);
 export const getProfile = repository.getProfile.bind(repository);
 export const setProfile = repository.setProfile.bind(repository);
-export const initializeUser = repository.initializeUser.bind(repository);

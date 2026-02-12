@@ -11,7 +11,4 @@ export interface UserRepository {
   // Profile operations
   getProfile(userId: number): Promise<UserProfile | undefined>;
   setProfile(userId: number, profile: CreateUserProfile): Promise<void>;
-
-  // Composite operations
-  initializeUser(userId: number): Promise<void>;
 }

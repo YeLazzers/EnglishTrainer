@@ -1,6 +1,6 @@
 import { Context } from "grammy";
 import { createLLM } from "../llm";
-import { getState, setState, setProfile, initializeUser, getProfile, UserState } from "../state";
+import { getState, setState, setProfile, getProfile, UserState } from "../state";
 import { mainMenuKeyboard, grammarTheoryKeyboard } from "../keyboards";
 import {
   ONBOARDING_SYSTEM_PROMPT,
@@ -18,9 +18,6 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
     await ctx.reply("Пожалуйста, отправь текстовое сообщение.");
     return;
   }
-
-  // Initialize user if needed (restore state from DB)
-  await initializeUser(userId);
 
   const state = await getState(userId);
 
