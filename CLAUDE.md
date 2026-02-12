@@ -30,6 +30,11 @@ All design and development decisions MUST align with [PRODUCT.md](PRODUCT.md). B
 - User-facing bot messages — in Russian (primary) and English (for exercises)
 - Documentation — Russian or English depending on context
 
+## Before Starting Any Task
+1. **Check `PRODUCT.md`** for user flow, state transitions, core mechanics, and current stage scope. All implementation decisions must align with the product document.
+2. **Read `CONTEXT.md`** in each module you will touch (e.g. `src/llm/CONTEXT.md`, `src/stateMachine/CONTEXT.md`). These files describe what's inside, how things connect, and current state of each module.
+3. **Read relevant directives** from `/directives/` folder — they contain mandatory rules for work cycle, runtime, DB, Telegram, LLM, git, and definition of done.
+
 ## Project Structure
 
 ```
@@ -55,34 +60,44 @@ All design and development decisions MUST align with [PRODUCT.md](PRODUCT.md). B
   │       ├── index.ts    # Factory function createSessionRepository()
   │       ├── redis.ts    # Redis client creation & config
   │       ├── redis-repository.ts # RedisSessionRepository (implements SessionRepository)
-  │       └── mappers.ts  # JSON serialization (with Date handling)
+  │       ├── mappers.ts  # JSON serialization (with Date handling)
+  │       └── mocks.ts    # Mock data for testing/debugging
   │
   ├── /commands           # Command handlers (application layer)
   │   ├── start.ts        # /start command (onboarding or return user)
-  │   └── debug.ts        # /debug command (show user state & profile)
+  │   ├── debug.ts        # /debug command (show user state & profile)
+  │   └── debugRedis.ts   # /debug_redis command (show active Redis session)
   │
   ├── /handlers           # Event handlers (application layer)
-  │   └── textMessage.ts  # message:text handler (state-based routing)
+  │   ├── messageWithStateMachine.ts  # Active: message:text → StateMachine delegation
+  │   └── textMessage.ts              # Legacy: direct state-based routing (not connected)
   │
   ├── /stateMachine       # State machine (state-based bot dialog flow)
   │   ├── index.ts        # StateMachine class, createStateMachine() factory
   │   ├── base.ts         # State base class (abstract)
   │   ├── types.ts        # StateHandlerContext, StateHandlerResult interfaces
   │   └── /states         # State implementations
-  │       ├── onboarding.ts       # ONBOARDING state
-  │       ├── mainMenu.ts         # MAIN_MENU state
-  │       ├── grammarTheory.ts    # GRAMMAR_THEORY state
-  │       ├── grammarPractice.ts  # GRAMMAR_PRACTICE state (uses SessionRepository)
-  │       ├── practiceResult.ts   # PRACTICE_RESULT state (uses SessionRepository)
-  │       ├── freeWriting.ts      # FREE_WRITING state
-  │       ├── writingFeedback.ts  # WRITING_FEEDBACK state
-  │       └── stats.ts            # STATS state
+  │       ├── index.ts              # Barrel export of all states
+  │       ├── onboarding.ts         # ONBOARDING state
+  │       ├── mainMenu.ts           # MAIN_MENU state
+  │       ├── grammarTheory.ts      # GRAMMAR_THEORY state
+  │       ├── grammarPractice/      # GRAMMAR_PRACTICE state (uses SessionRepository)
+  │       │   ├── index.ts          # GrammarPracticeState class
+  │       │   ├── constants.ts      # Session size, messages
+  │       │   └── mockedExercises.ts # Hardcoded exercises (stub until LLM generation)
+  │       ├── practiceResult.ts     # PRACTICE_RESULT state (uses SessionRepository)
+  │       ├── freeWriting.ts        # FREE_WRITING state
+  │       ├── writingFeedback.ts    # WRITING_FEEDBACK state
+  │       └── stats.ts              # STATS state
   │
   └── /llm                # LLM integrations (OpenAI, Gemini)
       ├── index.ts        # Factory function createLLM()
-      ├── openai.ts       # OpenAI client
-      ├── gemini.ts       # Google Gemini client
-      └── types.ts        # Shared LLM interfaces
+      ├── types.ts        # LLMAdapter interface, ChatMessage, JSONSchema
+      ├── logger.ts       # File-based LLM request/response logging (llm_logs/)
+      └── /models         # Provider implementations
+          ├── baseLLM.ts  # BaseLLMAdapter - abstract class with logging wrapper
+          ├── gemini.ts   # GeminiAdapter (Google Gemini API)
+          └── openai.ts   # OpenAIAdapter (OpenAI GPT API)
 
 /prisma
   ├── schema.prisma       # Data models: TestUserState, TestUserProfile
