@@ -4,11 +4,7 @@ import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../../generated/prisma/client";
 import { UserRepository } from "../../domain/repository";
-import {
-  UserState,
-  UserProfile,
-  CreateUserProfile,
-} from "../../domain/types";
+import { UserState, UserProfile, CreateUserProfile } from "../../domain/types";
 import { toDomainProfile, toDbProfileData } from "./mappers";
 
 export class PrismaUserRepository implements UserRepository {
@@ -51,10 +47,7 @@ export class PrismaUserRepository implements UserRepository {
     return toDomainProfile(record);
   }
 
-  async setProfile(
-    userId: number,
-    profile: CreateUserProfile
-  ): Promise<void> {
+  async setProfile(userId: number, profile: CreateUserProfile): Promise<void> {
     const data = toDbProfileData(userId, profile);
 
     await this.prisma.testUserProfile.upsert({
@@ -68,5 +61,4 @@ export class PrismaUserRepository implements UserRepository {
       create: data,
     });
   }
-
 }

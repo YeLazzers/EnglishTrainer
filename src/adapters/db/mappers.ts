@@ -23,10 +23,7 @@ export function toDomainProfile(dbProfile: TestUserProfile): UserProfile {
  * Transform Domain type to Prisma input (DB layer)
  * Domain uses arrays, DB stores goals/interests as JSON strings
  */
-export function toDbProfileData(
-  userId: number,
-  profile: CreateUserProfile
-) {
+export function toDbProfileData(userId: number, profile: CreateUserProfile) {
   return {
     id: userId,
     level: profile.level,

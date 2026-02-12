@@ -29,7 +29,12 @@ export class GrammarPracticeState extends State {
   /**
    * Отправляет упражнение пользователю с соответствующей разметкой (inline_buttons для single_choice)
    */
-  private async sendExercise(context: StateHandlerContext, exercise: Exercise, exerciseNumber: number, totalExercises: number): Promise<void> {
+  private async sendExercise(
+    context: StateHandlerContext,
+    exercise: Exercise,
+    exerciseNumber: number,
+    totalExercises: number
+  ): Promise<void> {
     const { ctx } = context;
     let message = `<b>#${exerciseNumber}/${totalExercises}</b>\n\n${exercise.question}\n\n`;
 
@@ -67,10 +72,13 @@ export class GrammarPracticeState extends State {
       console.log(`[GrammarPractice] Created session ${sessionId} for user ${userId}`);
 
       // Отправить начальное сообщение
-      await ctx.reply(`🎯 Начинаем практику: <b>${mockSession.grammarRule}</b>\n\nВсего упражнений: ${mockSession.exercises.length}`, {
-        parse_mode: "HTML",
-        reply_markup: grammarPracticeKeyboard,
-      });
+      await ctx.reply(
+        `🎯 Начинаем практику: <b>${mockSession.grammarRule}</b>\n\nВсего упражнений: ${mockSession.exercises.length}`,
+        {
+          parse_mode: "HTML",
+          reply_markup: grammarPracticeKeyboard,
+        }
+      );
 
       // Получить сессию и отправить первое упражнение
       const session = await this.sessionRepository.getSession(userId);
@@ -125,7 +133,10 @@ export class GrammarPracticeState extends State {
    * Обработчик нажатия на inline кнопку с ответом (single_choice)
    * callback_data формат: answer_{exerciseId}_{optionIndex}
    */
-  private async handleButtonAnswer(context: StateHandlerContext, callbackData: string): Promise<StateHandlerResult> {
+  private async handleButtonAnswer(
+    context: StateHandlerContext,
+    callbackData: string
+  ): Promise<StateHandlerResult> {
     const { ctx, userId } = context;
 
     try {
@@ -173,9 +184,12 @@ export class GrammarPracticeState extends State {
       if (answeredExercise?.isCorrect) {
         await ctx.reply("✅ Правильно!");
       } else {
-        await ctx.reply(`❌ Неправильно. Правильный ответ: <b>${currentExercise.correctAnswer}</b>`, {
-          parse_mode: "HTML",
-        });
+        await ctx.reply(
+          `❌ Неправильно. Правильный ответ: <b>${currentExercise.correctAnswer}</b>`,
+          {
+            parse_mode: "HTML",
+          }
+        );
       }
 
       // Выдать следующее упражнение
@@ -194,7 +208,10 @@ export class GrammarPracticeState extends State {
   /**
    * Обработчик текстового ответа
    */
-  private async handleTextAnswer(context: StateHandlerContext, userAnswer: string): Promise<StateHandlerResult> {
+  private async handleTextAnswer(
+    context: StateHandlerContext,
+    userAnswer: string
+  ): Promise<StateHandlerResult> {
     const { ctx, userId } = context;
 
     try {
@@ -225,9 +242,12 @@ export class GrammarPracticeState extends State {
       if (answeredExercise?.isCorrect) {
         await ctx.reply("✅ Правильно!");
       } else {
-        await ctx.reply(`❌ Неправильно. Правильный ответ: <b>${currentExercise.correctAnswer}</b>`, {
-          parse_mode: "HTML",
-        });
+        await ctx.reply(
+          `❌ Неправильно. Правильный ответ: <b>${currentExercise.correctAnswer}</b>`,
+          {
+            parse_mode: "HTML",
+          }
+        );
       }
 
       // Выдать следующее упражнение
@@ -265,12 +285,18 @@ export class GrammarPracticeState extends State {
       } else {
         // Все упражнения закончились - завершить сессию
         await this.sessionRepository.completeSession(userId);
-        await ctx.reply("🎉 Все упражнения закончились!\n\nНажми 'Завершить' для просмотра результатов.", {
-          reply_markup: grammarPracticeKeyboard,
-        });
+        await ctx.reply(
+          "🎉 Все упражнения закончились!\n\nНажми 'Завершить' для просмотра результатов.",
+          {
+            reply_markup: grammarPracticeKeyboard,
+          }
+        );
       }
     } catch (error) {
-      console.error(`[GrammarPractice] Error in sendNextExerciseOrComplete for user ${userId}:`, error);
+      console.error(
+        `[GrammarPractice] Error in sendNextExerciseOrComplete for user ${userId}:`,
+        error
+      );
       await ctx.reply("Ошибка при загрузке упражнения.", {
         reply_markup: grammarPracticeKeyboard,
       });

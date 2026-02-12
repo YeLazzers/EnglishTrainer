@@ -4,10 +4,7 @@ import { State } from "../base";
 import { StateHandlerContext, StateHandlerResult } from "../types";
 import { grammarTheoryKeyboard } from "../../keyboards";
 import { createLLM, JSONSchema } from "../../llm";
-import {
-  GRAMMAR_THEORY_SYSTEM_PROMPT,
-  GRAMMAR_THEORY_USER_PROMPT_TEMPLATE,
-} from "../../constants";
+import { GRAMMAR_THEORY_SYSTEM_PROMPT, GRAMMAR_THEORY_USER_PROMPT_TEMPLATE } from "../../constants";
 
 /**
  * GRAMMAR_THEORY состояние
@@ -75,8 +72,7 @@ export class GrammarTheoryState extends State {
     }
 
     // Build user prompt with interests and level
-    const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE
-      .replace("{{level}}", profile.level)
+    const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE.replace("{{level}}", profile.level)
       .replace("{{interests}}", profile.interests.join(", "))
       .replace("{{goals}}", profile.goals.join(", "));
 
@@ -121,10 +117,9 @@ export class GrammarTheoryState extends State {
       await ctx.reply(parsed.theory, { reply_markup: grammarTheoryKeyboard, parse_mode: "HTML" });
     } catch (error) {
       console.error("[GrammarTheoryState] Failed to parse LLM response:", error);
-      await ctx.reply(
-        "Не удалось загрузить объяснение. Попробуй позже.",
-        { reply_markup: grammarTheoryKeyboard }
-      );
+      await ctx.reply("Не удалось загрузить объяснение. Попробуй позже.", {
+        reply_markup: grammarTheoryKeyboard,
+      });
     }
   }
 }

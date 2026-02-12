@@ -14,8 +14,4 @@ export function createUserRepository(): UserRepository {
 
 // Re-export domain types for convenience
 export type { UserRepository } from "../../domain/repository";
-export type {
-  UserState,
-  UserProfile,
-  CreateUserProfile,
-} from "../../domain/types";
+export type { UserState, UserProfile, CreateUserProfile } from "../../domain/types";

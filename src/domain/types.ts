@@ -21,7 +21,4 @@ export interface UserProfile {
   updatedAt: Date;
 }
 
-export type CreateUserProfile = Omit<
-  UserProfile,
-  "id" | "createdAt" | "updatedAt"
->;
+export type CreateUserProfile = Omit<UserProfile, "id" | "createdAt" | "updatedAt">;

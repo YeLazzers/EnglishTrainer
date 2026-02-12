@@ -26,9 +26,7 @@ export interface StateHandlerResult {
 /**
  * Handler для обработки текстового сообщения в конкретном состоянии
  */
-export type StateMessageHandler = (
-  context: StateHandlerContext
-) => Promise<StateHandlerResult>;
+export type StateMessageHandler = (context: StateHandlerContext) => Promise<StateHandlerResult>;
 
 /**
  * Конфигурация состояния

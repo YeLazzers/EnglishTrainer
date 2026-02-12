@@ -48,10 +48,7 @@ export class StateMachine {
    * @param ctx grammy Context
    * @param profile Профиль пользователя (может быть undefined для новых пользователей)
    */
-  async handleMessage(
-    ctx: Context,
-    profile: UserProfile | undefined
-  ): Promise<void> {
+  async handleMessage(ctx: Context, profile: UserProfile | undefined): Promise<void> {
     const userId = ctx.from!.id;
     const messageText = ctx.message?.text;
 
@@ -61,7 +58,7 @@ export class StateMachine {
     }
 
     // Получаем текущее состояние пользователя
-    let currentState = await getState(userId);
+    const currentState = await getState(userId);
 
     // Если пользователя нет в БД, инициализируем в ONBOARDING
     if (!currentState) {
@@ -106,10 +103,7 @@ export class StateMachine {
    * @param ctx grammy Context
    * @param profile Профиль пользователя
    */
-  async handleCallback(
-    ctx: Context,
-    profile: UserProfile | undefined
-  ): Promise<void> {
+  async handleCallback(ctx: Context, profile: UserProfile | undefined): Promise<void> {
     const userId = ctx.from!.id;
     const callbackData = ctx.callbackQuery?.data;
 

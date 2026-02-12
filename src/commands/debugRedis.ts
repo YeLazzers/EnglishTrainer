@@ -41,10 +41,7 @@ export function createDebugRedisCommand(sessionRepository: SessionRepository) {
           `Status: Not answered`
         );
       } else {
-        lines.push(
-          `\n❓ <b>Current Exercise</b>`,
-          `Status: All exercises completed ✅`
-        );
+        lines.push(`\n❓ <b>Current Exercise</b>`, `Status: All exercises completed ✅`);
       }
 
       // Информация об ответанных упражнениях
@@ -62,10 +59,7 @@ export function createDebugRedisCommand(sessionRepository: SessionRepository) {
       }
 
       // Информация о времени
-      lines.push(
-        `\n⏱️ <b>Time Info</b>`,
-        `Started: ${session.startTime.toLocaleString()}`
-      );
+      lines.push(`\n⏱️ <b>Time Info</b>`, `Started: ${session.startTime.toLocaleString()}`);
       if (session.endTime) {
         lines.push(`Ended: ${session.endTime.toLocaleString()}`);
       }

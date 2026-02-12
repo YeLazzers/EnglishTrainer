@@ -46,5 +46,5 @@ bot.on("callback_query", async (ctx) => {
   }
 });
 
-bot.start();
+void bot.start();
 console.log("[Boot] Bot is running...");

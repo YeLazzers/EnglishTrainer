@@ -1,0 +1,9 @@
+dist/
+node_modules/
+src/generated/
+*.db
+redis-data/
+llm_logs/
+package-lock.json
+tsconfig.json
+.env

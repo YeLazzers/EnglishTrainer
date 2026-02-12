@@ -65,14 +65,13 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
       }
 
       await setState(userId, UserState.GRAMMAR_THEORY);
-      
+
       // Build user prompt with interests and level
-      const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE
-      .replace("{{level}}", profile.level)
-      .replace("{{interests}}", profile.interests.join(", "))
-      .replace("{{goals}}", profile.goals.join(", "));
-      
-      await ctx.reply('Ищем интересное правило грамматики для тебя...');
+      const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE.replace("{{level}}", profile.level)
+        .replace("{{interests}}", profile.interests.join(", "))
+        .replace("{{goals}}", profile.goals.join(", "));
+
+      await ctx.reply("Ищем интересное правило грамматики для тебя...");
       const response = await llm.chat([
         {
           role: "system",
@@ -88,11 +87,10 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
         const parsed = JSON.parse(response);
         await ctx.reply(parsed.theory, { reply_markup: grammarTheoryKeyboard });
       } catch (error) {
-        console.error('Failed to parse LLM response:', error);
-        await ctx.reply(
-          "Не удалось загрузить объяснение. Попробуй позже.",
-          { reply_markup: grammarTheoryKeyboard }
-        );
+        console.error("Failed to parse LLM response:", error);
+        await ctx.reply("Не удалось загрузить объяснение. Попробуй позже.", {
+          reply_markup: grammarTheoryKeyboard,
+        });
       }
       return;
     }
@@ -121,8 +119,7 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
       }
 
       // Stay in GRAMMAR_THEORY and fetch another rule
-      const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE
-        .replace("{{level}}", profile.level)
+      const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE.replace("{{level}}", profile.level)
         .replace("{{interests}}", profile.interests.join(", "))
         .replace("{{goals}}", profile.goals.join(", "));
 
@@ -141,10 +138,9 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
         const parsed = JSON.parse(response);
         await ctx.reply(parsed.theory, { reply_markup: grammarTheoryKeyboard });
       } catch {
-        await ctx.reply(
-          "Не удалось загрузить объяснение. Попробуй позже.",
-          { reply_markup: grammarTheoryKeyboard }
-        );
+        await ctx.reply("Не удалось загрузить объяснение. Попробуй позже.", {
+          reply_markup: grammarTheoryKeyboard,
+        });
       }
       return;
     }
@@ -166,5 +162,5 @@ export async function handleTextMessage(ctx: Context): Promise<void> {
   }
 
   // No state — suggest /start
-  await ctx.reply('Напиши /start, чтобы начать.');
+  await ctx.reply("Напиши /start, чтобы начать.");
 }

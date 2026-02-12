@@ -3,7 +3,7 @@
  * Handles Date conversion (Redis stores everything as strings)
  */
 
-import { PracticeSessionData } from '../../domain/session-types';
+import { PracticeSessionData } from "../../domain/session-types";
 
 /**
  * Convert domain session to JSON string for Redis storage

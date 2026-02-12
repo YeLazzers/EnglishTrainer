@@ -25,9 +25,7 @@ export abstract class BaseLLMAdapter implements LLMAdapter {
     try {
       const { content, tokenUsage } = await this.executeChat(messages, schema);
 
-      console.log(
-        `[LLM:${this.providerName}] ✅ Response received (${content.length} chars)`
-      );
+      console.log(`[LLM:${this.providerName}] ✅ Response received (${content.length} chars)`);
 
       // Log interaction with token usage info
       await logLLMInteraction(messages, content, this.providerName, this.model, tokenUsage);

@@ -34,7 +34,7 @@ export class OpenAIAdapter extends BaseLLMAdapter {
       };
     }
 
-    const response = await this.client.chat.completions.create(config) as ChatCompletion;
+    const response = (await this.client.chat.completions.create(config)) as ChatCompletion;
 
     const content = response.choices[0].message.content ?? "";
 

@@ -21,7 +21,6 @@ export class GeminiAdapter extends BaseLLMAdapter {
       otherMessages = [{ role: "user", content: "Начни." }];
     }
 
-
     const config: GenerateContentConfig = {
       systemInstruction: systemMessage?.content,
     };

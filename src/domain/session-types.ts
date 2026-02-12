@@ -4,8 +4,8 @@
  */
 
 export enum ExerciseType {
-  SINGLE_CHOICE = 'single_choice',
-  FILL_IN_BLANK = 'fill_in_blank',
+  SINGLE_CHOICE = "single_choice",
+  FILL_IN_BLANK = "fill_in_blank",
 }
 
 export interface Exercise {
@@ -42,7 +42,7 @@ export interface PracticeSessionData {
  */
 export type CreateSessionData = Omit<
   PracticeSessionData,
-  'sessionId' | 'currentExerciseIndex' | 'correct' | 'total' | 'startTime'
+  "sessionId" | "currentExerciseIndex" | "correct" | "total" | "startTime"
 >;
 
 /**

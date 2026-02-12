@@ -1,12 +1,8 @@
-import Redis from 'ioredis';
-import { v4 as uuidv4 } from 'uuid';
-import { SessionRepository } from '../../domain/session-repository';
-import {
-  PracticeSessionData,
-  CreateSessionData,
-  SessionAnswer,
-} from '../../domain/session-types';
-import { serializeSession, deserializeSession } from './mappers';
+import Redis from "ioredis";
+import { v4 as uuidv4 } from "uuid";
+import { SessionRepository } from "../../domain/session-repository";
+import { PracticeSessionData, CreateSessionData, SessionAnswer } from "../../domain/session-types";
+import { serializeSession, deserializeSession } from "./mappers";
 
 /**
  * Redis adapter implementing SessionRepository interface
@@ -14,7 +10,7 @@ import { serializeSession, deserializeSession } from './mappers';
  */
 export class RedisSessionRepository implements SessionRepository {
   private client: Redis;
-  private readonly keyPrefix = 'session:practice:';
+  private readonly keyPrefix = "session:practice:";
   private readonly defaultTTL = 86400; // 24 hours in seconds
 
   constructor(client: Redis) {
@@ -54,9 +50,7 @@ export class RedisSessionRepository implements SessionRepository {
     return sessionId;
   }
 
-  async getSession(
-    userId: number
-  ): Promise<PracticeSessionData | undefined> {
+  async getSession(userId: number): Promise<PracticeSessionData | undefined> {
     const key = this.getKey(userId);
     const data = await this.client.get(key);
 
@@ -65,10 +59,7 @@ export class RedisSessionRepository implements SessionRepository {
     return deserializeSession(data);
   }
 
-  async updateSession(
-    userId: number,
-    answer: SessionAnswer
-  ): Promise<void> {
+  async updateSession(userId: number, answer: SessionAnswer): Promise<void> {
     const session = await this.getSession(userId);
 
     if (!session) {
@@ -86,8 +77,7 @@ export class RedisSessionRepository implements SessionRepository {
 
     // Check answer correctness (case-insensitive, trimmed)
     const isCorrect =
-      currentExercise.correctAnswer.trim().toLowerCase() ===
-      answer.userAnswer.trim().toLowerCase();
+      currentExercise.correctAnswer.trim().toLowerCase() === answer.userAnswer.trim().toLowerCase();
 
     // Update exercise with user's answer
     currentExercise.userAnswer = answer.userAnswer;
@@ -107,9 +97,7 @@ export class RedisSessionRepository implements SessionRepository {
     const serialized = serializeSession(session);
     await this.client.setex(key, this.defaultTTL, serialized);
 
-    console.log(
-      `[Session] Updated user ${userId}: ${session.correct}/${session.total}`
-    );
+    console.log(`[Session] Updated user ${userId}: ${session.correct}/${session.total}`);
   }
 
   async completeSession(userId: number): Promise<void> {

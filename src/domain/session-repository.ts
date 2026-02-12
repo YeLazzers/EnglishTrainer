@@ -4,11 +4,7 @@
  * Follows the same pattern as UserRepository
  */
 
-import {
-  PracticeSessionData,
-  CreateSessionData,
-  SessionAnswer,
-} from './session-types';
+import { PracticeSessionData, CreateSessionData, SessionAnswer } from "./session-types";
 
 export interface SessionRepository {
   /**
