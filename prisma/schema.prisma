@@ -30,3 +30,111 @@ model TestUserProfile {
 
   @@map("test_user_profile")
 }
+
+// ---------------------------------------------------------------------------
+// Core (пользователь и профиль)
+// ---------------------------------------------------------------------------
+
+/// Registered user — created on first /start
+model User {
+  id            Int      @id               // Telegram user ID
+  firstName     String                     // From Telegram (always present)
+  lastName      String?                    // From Telegram (optional)
+  username      String?                    // From Telegram (optional)
+  languageCode  String?                    // From Telegram, e.g. "ru", "en"
+  isPremium     Boolean  @default(false)   // Telegram Premium flag
+  state         String   @default("ONBOARDING") // Current bot dialog state
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  profile       UserProfile?
+  topicProgress UserTopicProgress[]
+
+  @@map("user")
+}
+
+/// User profile for learning personalization (filled during onboarding)
+/// 1:1 with User — userId is both PK and FK
+model UserProfile {
+  userId       Int      @id               // FK → User (1:1)
+  level        String                     // CEFR level: "A1", "B2", etc.
+  goals        String                     // JSON stringified array
+  interests    String                     // JSON stringified array
+  rawResponse  String                     // Original onboarding message from user
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("user_profile")
+}
+
+// ---------------------------------------------------------------------------
+// Reference tables (справочники)
+// ---------------------------------------------------------------------------
+
+/// Language competency: Grammar, Vocabulary, Writing, etc.
+/// Standalone reference — no FK from categories (they are skill-specific by naming)
+model Skill {
+  id        String  @id               // "GRAMMAR", "VOCABULARY", "WRITING"
+  name      String                    // Display: "Grammar"
+  nameRu    String                    // Display: "Грамматика"
+  sortOrder Int     @default(0)
+  isActive  Boolean @default(false)   // Enabled in product right now
+
+  @@map("skill")
+}
+
+/// Grammar category grouping related topics (EGP-based)
+/// Implicitly belongs to the GRAMMAR skill
+model GrammarCategory {
+  id        String  @id               // "TENSES", "MODALS", "CONDITIONALS"
+  name      String                    // "Tenses & Aspect"
+  nameRu    String                    // "Времена и видовременные формы"
+  sortOrder Int     @default(0)
+
+  topics GrammarTopic[]
+
+  @@map("grammar_category")
+}
+
+/// Specific grammar topic within a category
+model GrammarTopic {
+  id         String @id               // "PRESENT_SIMPLE", "PRESENT_PERFECT"
+  categoryId String                   // FK → GrammarCategory
+  name       String                   // "Present Simple"
+  nameRu     String                   // "Настоящее простое время"
+  cefrLevel  String                   // CEFR level where topic is introduced: "A1"
+  sortOrder  Int    @default(0)
+
+  category GrammarCategory     @relation(fields: [categoryId], references: [id])
+  progress UserTopicProgress[]
+
+  @@map("grammar_topic")
+}
+
+// ---------------------------------------------------------------------------
+// Statistics (статистика пользователя)
+// ---------------------------------------------------------------------------
+
+/// Per-user progress on a grammar topic
+model UserTopicProgress {
+  userId  Int
+  topicId String
+
+  exposed         Boolean   @default(false) // Was theory shown?
+  practiceCount   Int       @default(0)     // Number of practice sessions
+  correctCount    Int       @default(0)     // Total correct answers
+  totalCount      Int       @default(0)     // Total answers given
+  mastery         Int       @default(0)     // Calculated mastery 0-100
+  lastPracticedAt DateTime?                 // When last practiced
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User         @relation(fields: [userId], references: [id])
+  topic GrammarTopic  @relation(fields: [topicId], references: [id])
+
+  @@id([userId, topicId])
+  @@map("user_topic_progress")
+}

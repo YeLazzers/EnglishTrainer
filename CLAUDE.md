@@ -100,7 +100,7 @@ All design and development decisions MUST align with [PRODUCT.md](PRODUCT.md). B
           └── openai.ts   # OpenAIAdapter (OpenAI GPT API)
 
 /prisma
-  ├── schema.prisma       # Data models: TestUserState, TestUserProfile
+  ├── schema.prisma       # Data models (see PRODUCT.md §9 for overview)
   └── /migrations         # Database migrations
 
 /directives              # Agent directives registry
@@ -120,7 +120,8 @@ Root
   ├── prisma.config.ts    # Prisma config (better-sqlite3)
   ├── .env               # Environment variables (BOT_TOKEN, REDIS_URL, API keys)
   ├── .gitignore         # Git ignore rules (includes redis-data/)
-  └── PRODUCT.md         # Product document (source of truth)
+  ├── PRODUCT.md         # Product document (source of truth)
+  └── METHODOLOGY.md     # Learning methodology (CEFR, EGP, skills, grammar catalog)
 ```
 
 ### Architecture: Hexagonal (Ports & Adapters) + State Machine

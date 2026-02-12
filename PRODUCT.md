@@ -309,16 +309,50 @@ ONBOARDING ─────→ MAIN_MENU
 
 ---
 
-## 9. Data Model (Draft)
+## 9. Data Model
 
-### User
-<!-- TODO -->
+> Полная Prisma-схема: `/prisma/schema.prisma`
+> Методическая основа: [METHODOLOGY.md](METHODOLOGY.md)
 
-### Progress / Stats
-<!-- TODO -->
+### User (SQLite)
 
-### Content (Words / Exercises)
-<!-- TODO -->
+| Модель | Назначение | Ключ |
+|--------|-----------|------|
+| **User** | Telegram-данные + текущий стейт бота | `id` = Telegram user ID |
+| **UserProfile** | Персонализация: CEFR-уровень, цели, интересы | `userId` FK → User (1:1) |
+
+- User создаётся при первом `/start`
+- UserProfile заполняется после онбординга
+- `state` хранится на User (не в Redis) — позиция в диалоге должна пережить рестарт бота
+
+### Reference tables — справочники (SQLite)
+
+| Модель | Назначение | Ключ |
+|--------|-----------|------|
+| **Skill** | Языковые компетенции (Grammar, Vocabulary, Writing...) | String ID |
+| **GrammarCategory** | Категории грамматики (Tenses, Modals, Conditionals...) | String ID |
+| **GrammarTopic** | Темы внутри категории + CEFR-уровень | String ID, FK → GrammarCategory |
+
+- Справочники заполняются seed-скриптом на основе METHODOLOGY.md
+- String ID используется в промптах к LLM (`"PRESENT_SIMPLE"`, `"TENSES"`)
+- LLM знает содержание правил — справочники хранят только структуру для статистики
+
+### Statistics — прогресс (SQLite)
+
+| Модель | Назначение | Ключ |
+|--------|-----------|------|
+| **UserTopicProgress** | Прогресс пользователя по грамматической теме | Composite `(userId, topicId)` |
+
+Поля: exposed, practiceCount, correctCount, totalCount, mastery (0-100), lastPracticedAt
+
+### Active sessions (Redis)
+
+| Структура | Назначение | TTL |
+|-----------|-----------|-----|
+| **PracticeSessionData** | Активная сессия упражнений (exercises, текущий индекс, счёт) | 24h |
+
+- Redis — для временных данных активной практики
+- При завершении сессии результаты агрегируются в UserTopicProgress (SQLite)
 
 ---
 
