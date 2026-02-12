@@ -19,6 +19,17 @@ import { mainMenuKeyboard } from "../../keyboards";
 export class MainMenuState extends State {
   readonly type = UserState.MAIN_MENU;
 
+  /**
+   * Вход в MAIN_MENU: отправляем клавиатуру главного меню
+   * (В будущем можно добавить streak, последнюю активность, рекомендации)
+   */
+  async onEnter(context: StateHandlerContext): Promise<void> {
+    const { ctx } = context;
+    await ctx.reply("Выбери раздел:", {
+      reply_markup: mainMenuKeyboard,
+    });
+  }
+
   async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
     const { ctx, messageText } = context;
 
@@ -57,13 +68,5 @@ export class MainMenuState extends State {
         });
         return { handled: true };
     }
-  }
-
-  /**
-   * Вход в MAIN_MENU: отправляем краткую сводку
-   * (В будущем можно добавить streak, последнюю активность, рекомендации)
-   */
-  async onEnter(context: StateHandlerContext): Promise<void> {
-    // TODO: Загрузить профиль пользователя и отправить сводку
   }
 }

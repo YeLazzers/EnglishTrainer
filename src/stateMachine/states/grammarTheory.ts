@@ -100,7 +100,7 @@ export class GrammarTheoryState extends State {
       console.error("[GrammarTheoryState] Failed to parse LLM response:", error);
       await ctx.reply(
         "Не удалось загрузить объяснение. Попробуй позже.",
-        { reply_markup: grammarTheoryKeyboard }
+        { reply_markup: grammarTheoryKeyboard, parse_mode: "HTML" }
       );
     }
   }

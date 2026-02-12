@@ -3,7 +3,6 @@ import { State } from "../base";
 import { StateHandlerContext, StateHandlerResult } from "../types";
 import { createLLM } from "../../llm";
 import { setProfile, getProfile } from "../../state";
-import { mainMenuKeyboard } from "../../keyboards";
 import { ONBOARDING_SYSTEM_PROMPT, ONBOARDING_RESPONSE_MESSAGE } from "../../constants";
 
 /**
@@ -70,8 +69,8 @@ export class OnboardingState extends State {
         rawResponse: messageText,
       });
 
-      // Отправляем приветственное сообщение
-      await ctx.reply(parsed.summary, { reply_markup: mainMenuKeyboard });
+      // Отправляем приветственное сообщение (клавиатура будет отправлена в onEnter MAIN_MENU)
+      await ctx.reply(parsed.summary);
 
       // Переходим в MAIN_MENU
       return {
