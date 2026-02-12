@@ -1,8 +1,8 @@
-const eslint = require("@eslint/js");
-const tseslint = require("typescript-eslint");
-const prettier = require("eslint-config-prettier");
+import eslint from "@eslint/js";
+import tseslint from "typescript-eslint";
+import prettier from "eslint-config-prettier";
 
-module.exports = tseslint.config(
+export default tseslint.config(
   {
     ignores: [
       "dist/**",
@@ -11,10 +11,11 @@ module.exports = tseslint.config(
       "*.db",
       "redis-data/**",
       "llm_logs/**",
-      "eslint.config.js",
+      "eslint.config.mjs",
       "prisma.config.ts",
       "*.config.js",
-      "*.config.ts"
+      "*.config.ts",
+      "*.config.mjs"
     ]
   },
   eslint.configs.recommended,
@@ -23,7 +24,7 @@ module.exports = tseslint.config(
     languageOptions: {
       parserOptions: {
         projectService: true,
-        tsconfigRootDir: __dirname
+        tsconfigRootDir: import.meta.dirname
       }
     },
     rules: {

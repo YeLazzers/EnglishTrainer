@@ -7,8 +7,8 @@ import { createUserRepository } from "./adapters/db";
 const repository = createUserRepository();
 
 // Re-export types (same as before)
-export { UserState, UserProfile } from "./domain/types";
-export type { CreateUserProfile } from "./domain/types";
+export { UserState } from "./domain/types";
+export type { UserProfile, CreateUserProfile } from "./domain/types";
 
 // Re-export functions with same signatures
 // Bind to repository instance to preserve 'this' context

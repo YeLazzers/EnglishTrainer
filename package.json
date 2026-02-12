@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx --env-file=.env src/bot.ts",
     "build": "tsc",
-    "start": "node dist/bot.js",
+    "start": "tsx dist/bot.js",
     "start:studio": "prisma studio",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -18,7 +18,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@google/genai": "^1.40.0",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
