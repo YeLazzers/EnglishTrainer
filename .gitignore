@@ -4,3 +4,9 @@ dist
 *.db
 
 /src/generated/prisma
+
+# Redis data (not committed, stored in Docker volume)
+redis-data/
+
+# LLM logs (debug only)
+llm_logs/

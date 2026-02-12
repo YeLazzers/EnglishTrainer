@@ -3,7 +3,7 @@ import { UserState, UserProfile } from "../../domain/types";
 import { State } from "../base";
 import { StateHandlerContext, StateHandlerResult } from "../types";
 import { grammarTheoryKeyboard } from "../../keyboards";
-import { createLLM } from "../../llm";
+import { createLLM, JSONSchema } from "../../llm";
 import {
   GRAMMAR_THEORY_SYSTEM_PROMPT,
   GRAMMAR_THEORY_USER_PROMPT_TEMPLATE,
@@ -80,27 +80,50 @@ export class GrammarTheoryState extends State {
       .replace("{{interests}}", profile.interests.join(", "))
       .replace("{{goals}}", profile.goals.join(", "));
 
+    // JSON Schema для структурированного ответа
+    const responseSchema: JSONSchema = {
+      type: "object",
+      properties: {
+        rule_name: {
+          type: "string",
+          description: "Name of the grammar rule",
+        },
+        level: {
+          type: "string",
+          description: "English level (A1-C2)",
+        },
+        theory: {
+          type: "string",
+          description: "Explanation of the grammar rule with examples",
+        },
+      },
+      required: ["rule_name", "level", "theory"],
+    };
+
     await ctx.reply("Ищем интересное правило грамматики для тебя...");
 
     try {
-      const response = await this.llm.chat([
-        {
-          role: "system",
-          content: GRAMMAR_THEORY_SYSTEM_PROMPT,
-        },
-        {
-          role: "user",
-          content: userPrompt,
-        },
-      ]);
+      const response = await this.llm.chat(
+        [
+          {
+            role: "system",
+            content: GRAMMAR_THEORY_SYSTEM_PROMPT,
+          },
+          {
+            role: "user",
+            content: userPrompt,
+          },
+        ],
+        responseSchema
+      );
 
       const parsed = JSON.parse(response);
-      await ctx.reply(parsed.theory, { reply_markup: grammarTheoryKeyboard });
+      await ctx.reply(parsed.theory, { reply_markup: grammarTheoryKeyboard, parse_mode: "HTML" });
     } catch (error) {
       console.error("[GrammarTheoryState] Failed to parse LLM response:", error);
       await ctx.reply(
         "Не удалось загрузить объяснение. Попробуй позже.",
-        { reply_markup: grammarTheoryKeyboard, parse_mode: "HTML" }
+        { reply_markup: grammarTheoryKeyboard }
       );
     }
   }

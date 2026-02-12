@@ -1,6 +1,6 @@
 import { LLMAdapter } from "./types";
-import { GeminiAdapter } from "./gemini";
-import { OpenAIAdapter } from "./openai";
+import { GeminiAdapter } from "./models/gemini";
+import { OpenAIAdapter } from "./models/openai";
 
 export type LLMProvider = "gemini" | "openai";
 
@@ -23,4 +23,4 @@ export function createLLM(): LLMAdapter {
   }
 }
 
-export type { LLMAdapter, ChatMessage } from "./types";
+export type { LLMAdapter, ChatMessage, JSONSchema } from "./types";

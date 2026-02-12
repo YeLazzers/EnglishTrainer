@@ -1,5 +1,6 @@
 import { Context } from "grammy";
 import { UserState, UserProfile } from "../domain/types";
+import { SessionRepository } from "../domain/session-repository";
 import { getState, setState } from "../state";
 import { State } from "./base";
 import { StateHandlerContext, StateHandlerResult } from "./types";
@@ -100,6 +101,69 @@ export class StateMachine {
   }
 
   /**
+   * Обрабатывает callback_query (нажатия на inline_buttons)
+   *
+   * @param ctx grammy Context
+   * @param profile Профиль пользователя
+   */
+  async handleCallback(
+    ctx: Context,
+    profile: UserProfile | undefined
+  ): Promise<void> {
+    const userId = ctx.from!.id;
+    const callbackData = ctx.callbackQuery?.data;
+
+    if (!callbackData) {
+      await ctx.answerCallbackQuery({ text: "Ошибка обработки" });
+      return;
+    }
+
+    try {
+      // Получаем текущее состояние пользователя
+      const currentState = await getState(userId);
+
+      if (!currentState) {
+        await ctx.answerCallbackQuery({ text: "Начни новую практику" });
+        return;
+      }
+
+      if (process.env.DEBUG_STATE_MACHINE === "true") {
+        console.log(`[Callback] User ${userId} (${currentState}) → data: ${callbackData}`);
+      }
+
+      // Находим обработчик для этого состояния
+      const stateHandler = this.states.get(currentState);
+      if (!stateHandler) {
+        console.error(`No handler registered for state: ${currentState}`);
+        await ctx.answerCallbackQuery({ text: "Ошибка" });
+        return;
+      }
+
+      // Создаем контекст с callback_data вместо messageText
+      const context: StateHandlerContext = {
+        ctx,
+        userId,
+        messageText: "", // Для callback_query messageText пуст
+        callbackData, // Передаем callback_data
+        currentState,
+        profile,
+      };
+
+      const result = await stateHandler.handle(context);
+
+      // Если обработчик вернул переход в новое состояние
+      if (result.nextState && result.nextState !== currentState) {
+        await this.transition(currentState, result.nextState, context);
+      }
+
+      await ctx.answerCallbackQuery();
+    } catch (error) {
+      console.error(`[Callback] Error for user ${userId}:`, error);
+      await ctx.answerCallbackQuery({ text: "Произошла ошибка" });
+    }
+  }
+
+  /**
    * Явно изменяет состояние пользователя
    * Используется для команд и других явных переходов
    *
@@ -170,16 +234,18 @@ export class StateMachine {
 
 /**
  * Создает и возвращает инстанс State Machine с зарегистрированными состояниями
+ *
+ * @param sessionRepository SessionRepository для управления практическими сессиями
  */
-export function createStateMachine(): StateMachine {
+export function createStateMachine(sessionRepository: SessionRepository): StateMachine {
   const machine = new StateMachine();
 
   // Регистрируем все состояния
   machine.register(new OnboardingState());
   machine.register(new MainMenuState());
   machine.register(new GrammarTheoryState());
-  machine.register(new GrammarPracticeState());
-  machine.register(new PracticeResultState());
+  machine.register(new GrammarPracticeState(sessionRepository));
+  machine.register(new PracticeResultState(sessionRepository));
   machine.register(new FreeWritingState());
   machine.register(new WritingFeedbackState());
   machine.register(new StatsState());

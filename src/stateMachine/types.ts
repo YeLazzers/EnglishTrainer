@@ -8,7 +8,8 @@ import { UserState, UserProfile } from "../domain/types";
 export interface StateHandlerContext {
   ctx: Context;
   userId: number;
-  messageText: string;
+  messageText: string; // Для текстовых сообщений
+  callbackData?: string; // Для callback_query (нажатия на кнопки)
   currentState: UserState;
   profile: UserProfile | undefined; // Профиль пользователя (может быть undefined в ONBOARDING)
 }

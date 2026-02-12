@@ -14,3 +14,10 @@ export const grammarTheoryKeyboard = new Keyboard()
   .text("Другое правило")
   .text("Меню")
   .resized();
+
+export const grammarPracticeKeyboard = new Keyboard()
+  .text("Пропустить")
+  .text("Завершить")
+  .row()
+  .text("Меню")
+  .resized();

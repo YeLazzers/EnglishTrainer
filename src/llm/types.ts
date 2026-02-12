@@ -3,6 +3,13 @@ export interface ChatMessage {
   content: string;
 }
 
+export interface JSONSchema {
+  type: string;
+  properties: Record<string, unknown>;
+  required?: string[];
+  [key: string]: unknown;
+}
+
 export interface LLMAdapter {
-  chat(messages: ChatMessage[]): Promise<string>;
+  chat(messages: ChatMessage[], schema?: JSONSchema): Promise<string>;
 }

@@ -1,6 +1,7 @@
 import { UserState } from "../../domain/types";
 import { State } from "../base";
 import { StateHandlerContext, StateHandlerResult } from "../types";
+import { SessionRepository } from "../../domain/session-repository";
 
 /**
  * PRACTICE_RESULT состояние
@@ -15,6 +16,10 @@ import { StateHandlerContext, StateHandlerResult } from "../types";
  */
 export class PracticeResultState extends State {
   readonly type = UserState.PRACTICE_RESULT;
+
+  constructor(private sessionRepository: SessionRepository) {
+    super();
+  }
 
   async onEnter(context: StateHandlerContext): Promise<void> {
     // TODO: Загрузить результаты практики и отправить итоговое сообщение

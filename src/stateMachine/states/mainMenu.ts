@@ -41,11 +41,11 @@ export class MainMenuState extends State {
         };
 
       case "Практика":
-        // TODO: Реализовать GRAMMAR_PRACTICE
-        await ctx.reply("TODO: Раздел Практика в разработке", {
-          reply_markup: mainMenuKeyboard,
-        });
-        return { handled: true };
+        // Переход в практику через теорию (сначала загружаем правило, потом практика)
+        return {
+          nextState: UserState.GRAMMAR_PRACTICE,
+          handled: true,
+        };
 
       case "Свободное письмо":
         // TODO: Реализовать FREE_WRITING
