@@ -62,20 +62,24 @@ export class GrammarPracticeState extends State {
 	}
 
 	async onEnter(context: StateHandlerContext): Promise<void> {
-		const { ctx, userId } = context;
+		const { ctx, userId, grammarRule } = context;
 
 		try {
 			// Получить моковый набор упражнений
 			const mockSession = getRandomMockSession();
-			const sessionData = { ...mockSession, userId };
+
+			// Если передано правило из GRAMMAR_THEORY, использовать его
+			// Иначе использовать правило из мока
+			const ruleName = grammarRule || mockSession.grammarRule;
+			const sessionData = { ...mockSession, userId, grammarRule: ruleName };
 
 			// Создать сессию в Redis
 			const sessionId = await this.sessionRepository.createSession(sessionData);
-			console.log(`[GrammarPractice] Created session ${sessionId} for user ${userId}`);
+			console.log(`[GrammarPractice] Created session ${sessionId} for user ${userId} (rule: ${ruleName})`);
 
 			// Отправить начальное сообщение
 			await ctx.reply(
-				`🎯 Начинаем практику: <b>${mockSession.grammarRule}</b>\n\nВсего упражнений: ${mockSession.exercises.length}`,
+				`🎯 Начинаем практику: <b>${ruleName}</b>\n\nВсего упражнений: ${mockSession.exercises.length}`,
 				{
 					parse_mode: "HTML",
 					reply_markup: grammarPracticeKeyboard,

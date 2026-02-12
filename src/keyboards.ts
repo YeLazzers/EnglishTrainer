@@ -8,12 +8,7 @@ export const mainMenuKeyboard = new Keyboard()
 	.text("Статистика")
 	.resized();
 
-export const grammarTheoryKeyboard = new Keyboard()
-	.text("Практика на это правило")
-	.row()
-	.text("Другое правило")
-	.text("Меню")
-	.resized();
+export const grammarTheoryKeyboard = new Keyboard().text("Другое правило").text("Меню").resized();
 
 export const grammarPracticeKeyboard = new Keyboard()
 	.text("Пропустить")
