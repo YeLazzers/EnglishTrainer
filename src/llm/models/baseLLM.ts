@@ -18,7 +18,7 @@ export abstract class BaseLLMAdapter implements LLMAdapter {
 	async chat(messages: ChatMessage[], schema?: JSONSchema): Promise<string> {
 		// Get last message for logging
 		const lastMessage = messages[messages.length - 1];
-		const prompt = lastMessage.content.substring(0, 20);
+		const prompt = lastMessage.content.substring(0, 40);
 
 		console.log(`[LLM:${this.providerName}] Initiating request: "${prompt}..."`);
 

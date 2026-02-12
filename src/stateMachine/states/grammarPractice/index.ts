@@ -1,13 +1,19 @@
 import { InlineKeyboard } from "grammy";
 
-import { getRandomMockSession } from "@adapters/session/mocks";
 import { SessionRepository } from "@domain/session-repository";
 import { Exercise, ExerciseType } from "@domain/session-types";
 import { UserState } from "@domain/types";
+import { createLLM } from "@llm";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
-import { grammarPracticeKeyboard } from "../../keyboards";
+import {
+	GRAMMAR_PRACTICE_REPLY_KEYBOARD,
+	// GRAMMAR_PRACTICE_RESPONSE_SCHEMA,
+	// GRAMMAR_PRACTICE_SYSTEM_PROMPT,
+	// GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE,
+} from "./constants";
+import { MOCKED_EXERCISES_RESPONSE } from "./mockedExercises";
 
 /**
  * GRAMMAR_PRACTICE состояние
@@ -23,6 +29,7 @@ import { grammarPracticeKeyboard } from "../../keyboards";
  */
 export class GrammarPracticeState extends State {
 	readonly type = UserState.GRAMMAR_PRACTICE;
+	private llm = createLLM();
 
 	constructor(private sessionRepository: SessionRepository) {
 		super();
@@ -62,35 +69,83 @@ export class GrammarPracticeState extends State {
 	}
 
 	async onEnter(context: StateHandlerContext): Promise<void> {
-		const { ctx, userId, grammarRule } = context;
+		const { ctx, userId, grammarRule, profile } = context;
+
+		if (!profile) {
+			await ctx.reply("Профиль не найден. Выполни /start.");
+			return;
+		}
+
+		const ruleName = grammarRule || "General Grammar";
+
+		await ctx.reply(`Генерируем упражнения по теме <b>${ruleName}</b>...`, {
+			parse_mode: "HTML",
+			reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
+		});
 
 		try {
-			// Получить моковый набор упражнений
-			const mockSession = getRandomMockSession();
+			// Build user prompt
+			// const userPrompt = GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE.replace(
+			// 	"{{grammarRule}}",
+			// 	ruleName
+			// )
+			// 	.replace("{{level}}", profile.level)
+			// 	.replace("{{interests}}", profile.interests.join(", "))
+			// 	.replace("{{goals}}", profile.goals.join(", "));
 
-			// Если передано правило из GRAMMAR_THEORY, использовать его
-			// Иначе использовать правило из мока
-			const ruleName = grammarRule || mockSession.grammarRule;
-			const sessionData = { ...mockSession, userId, grammarRule: ruleName };
+			// Call LLM
+			// const response = await this.llm.chat(
+			// 	[
+			// 		{ role: "system", content: GRAMMAR_PRACTICE_SYSTEM_PROMPT },
+			// 		{ role: "user", content: userPrompt },
+			// 	],
+			// 	GRAMMAR_PRACTICE_RESPONSE_SCHEMA
+			// );
+			const response = JSON.stringify(MOCKED_EXERCISES_RESPONSE); // Mocked for now
 
-			// Создать сессию в Redis
-			const sessionId = await this.sessionRepository.createSession(sessionData);
-			console.log(`[GrammarPractice] Created session ${sessionId} for user ${userId} (rule: ${ruleName})`);
+			const parsed = JSON.parse(response) as {
+				exercises: Array<{
+					id: string;
+					type: string;
+					question: string;
+					options?: string[];
+					correctAnswer: string;
+				}>;
+			};
 
-			// Отправить начальное сообщение
+			// Map LLM response to domain Exercise[]
+			const exercises: Exercise[] = parsed.exercises.map((ex) => ({
+				id: ex.id,
+				type: ex.type as ExerciseType,
+				question: ex.question,
+				options: ex.options,
+				correctAnswer: ex.correctAnswer,
+			}));
+
+			// Create session in Redis
+			const sessionId = await this.sessionRepository.createSession({
+				userId,
+				grammarRule: ruleName,
+				level: profile.level,
+				exercises,
+			});
+
+			console.log(
+				`[GrammarPractice] Created session ${sessionId} for user ${userId} (rule: ${ruleName}, exercises: ${exercises.length})`
+			);
+
 			await ctx.reply(
-				`🎯 Начинаем практику: <b>${ruleName}</b>\n\nВсего упражнений: ${mockSession.exercises.length}`,
+				`🎯 Начинаем практику: <b>${ruleName}</b>\n\nВсего упражнений: ${exercises.length}`,
 				{
 					parse_mode: "HTML",
-					reply_markup: grammarPracticeKeyboard,
+					reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 				}
 			);
 
-			// Получить сессию и отправить первое упражнение
+			// Send first exercise
 			const session = await this.sessionRepository.getSession(userId);
 			if (session && session.exercises.length > 0) {
-				const firstExercise = session.exercises[0];
-				await this.sendExercise(context, firstExercise, 1, session.exercises.length);
+				await this.sendExercise(context, session.exercises[0], 1, session.exercises.length);
 			}
 		} catch (error) {
 			console.error(`[GrammarPractice] Error in onEnter for user ${userId}:`, error);
@@ -208,7 +263,7 @@ export class GrammarPracticeState extends State {
 				error
 			);
 			await ctx.reply("Ошибка при обработке ответа.", {
-				reply_markup: grammarPracticeKeyboard,
+				reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 			});
 			return { handled: true };
 		}
@@ -238,6 +293,12 @@ export class GrammarPracticeState extends State {
 				return { handled: true };
 			}
 
+			// Для single_choice принимаем только нажатие кнопки
+			if (currentExercise.type === ExerciseType.SINGLE_CHOICE) {
+				await ctx.reply("Выбери ответ, нажав на кнопку выше.");
+				return { handled: true };
+			}
+
 			// Записать ответ
 			await this.sessionRepository.updateSession(userId, {
 				exerciseId: currentExercise.id,
@@ -251,12 +312,10 @@ export class GrammarPracticeState extends State {
 			if (answeredExercise?.isCorrect) {
 				await ctx.reply("✅ Правильно!");
 			} else {
-				await ctx.reply(
-					`❌ Неправильно. Правильный ответ: <b>${currentExercise.correctAnswer}</b>`,
-					{
-						parse_mode: "HTML",
-					}
-				);
+				const displayAnswer = currentExercise.correctAnswer.split("|")[0].trim();
+				await ctx.reply(`❌ Неправильно. Правильный ответ: <b>${displayAnswer}</b>`, {
+					parse_mode: "HTML",
+				});
 			}
 
 			// Выдать следующее упражнение
@@ -269,7 +328,7 @@ export class GrammarPracticeState extends State {
 				error
 			);
 			await ctx.reply("Ошибка при обработке ответа.", {
-				reply_markup: grammarPracticeKeyboard,
+				reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 			});
 			return { handled: true };
 		}
@@ -305,7 +364,7 @@ export class GrammarPracticeState extends State {
 				await ctx.reply(
 					"🎉 Все упражнения закончились!\n\nНажми 'Завершить' для просмотра результатов.",
 					{
-						reply_markup: grammarPracticeKeyboard,
+						reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 					}
 				);
 			}
@@ -315,7 +374,7 @@ export class GrammarPracticeState extends State {
 				error
 			);
 			await ctx.reply("Ошибка при загрузке упражнения.", {
-				reply_markup: grammarPracticeKeyboard,
+				reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 			});
 		}
 	}
@@ -355,7 +414,7 @@ export class GrammarPracticeState extends State {
 		} catch (error) {
 			console.error(`[GrammarPractice] Error skipping exercise for user ${userId}:`, error);
 			await ctx.reply("Ошибка при пропуске упражнения.", {
-				reply_markup: grammarPracticeKeyboard,
+				reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 			});
 			return { handled: true };
 		}
