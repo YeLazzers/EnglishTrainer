@@ -3,6 +3,8 @@
 export enum UserState {
   ONBOARDING = "ONBOARDING",
   MAIN_MENU = "MAIN_MENU",
+  GRAMMAR_THEORY = "GRAMMAR_THEORY",
+  GRAMMAR_PRACTICE = "GRAMMAR_PRACTICE",
 }
 
 export interface UserProfile {

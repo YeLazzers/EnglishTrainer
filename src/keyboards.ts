@@ -7,3 +7,10 @@ export const mainMenuKeyboard = new Keyboard()
   .text("Свободное письмо")
   .text("Статистика")
   .resized();
+
+export const grammarTheoryKeyboard = new Keyboard()
+  .text("Практика на это правило")
+  .row()
+  .text("Другое правило")
+  .text("Меню")
+  .resized();
