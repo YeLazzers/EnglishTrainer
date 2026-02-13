@@ -13,7 +13,7 @@ import {
 	// GRAMMAR_PRACTICE_SYSTEM_PROMPT,
 	// GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE,
 } from "./constants";
-import { MOCKED_EXERCISES_RESPONSE } from "./mockedExercises";
+import { MOCKED_EXERCISES_RESPONSE } from "./mocks";
 
 /**
  * GRAMMAR_PRACTICE состояние

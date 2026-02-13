@@ -6,9 +6,9 @@ import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 import {
 	// ONBOARDING_SYSTEM_PROMPT,
-	ONBOARDING_RESPONSE_MESSAGE,
 	ONBOARDING_WELCOME_MESSAGE,
 } from "./constants";
+import { MOCKED_ONBOARDING_RESPONSE } from "./mocks";
 
 /**
  * ONBOARDING состояние
@@ -46,7 +46,7 @@ export class OnboardingState extends State {
 			// Отправляем сообщение о том, что анализируем ответ
 			await ctx.reply("Анализирую твой ответ... ⏳");
 
-			const analysis = ONBOARDING_RESPONSE_MESSAGE;
+			const analysis = MOCKED_ONBOARDING_RESPONSE;
 			// const analysis = await this.llm.chat([
 			// 	{
 			// 		role: "system",

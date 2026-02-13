@@ -7,8 +7,12 @@ import { createLLM, JSONSchema } from "@llm";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
-import { GRAMMAR_THEORY_SYSTEM_PROMPT, GRAMMAR_THEORY_USER_PROMPT_TEMPLATE } from "../../constants";
-import { grammarTheoryKeyboard } from "../../keyboards";
+import {
+	GRAMMAR_THEORY_SYSTEM_PROMPT,
+	GRAMMAR_THEORY_USER_PROMPT_TEMPLATE,
+	GRAMMAR_THEORY_REPLY_KEYBOARD,
+	// GRAMMAR_THEORY_RESPONSE_SCHEMA,
+} from "./constants";
 
 /**
  * GRAMMAR_THEORY состояние
@@ -31,7 +35,7 @@ export class GrammarTheoryState extends State {
 		const { ctx, profile } = context;
 
 		await ctx.reply("Ищем интересное правило грамматики для тебя...", {
-			reply_markup: grammarTheoryKeyboard,
+			reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
 		});
 
 		await this.generateAndSendTheory(ctx, profile);
@@ -67,7 +71,7 @@ export class GrammarTheoryState extends State {
 			default:
 				// Неизвестный ввод
 				await ctx.reply("Выбери из доступных опций ниже.", {
-					reply_markup: grammarTheoryKeyboard,
+					reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
 				});
 				return { handled: true };
 		}
@@ -91,26 +95,6 @@ export class GrammarTheoryState extends State {
 			.replace("{{interests}}", profile.interests.join(", "))
 			.replace("{{goals}}", profile.goals.join(", "));
 
-		// JSON Schema для структурированного ответа
-		const responseSchema: JSONSchema = {
-			type: "object",
-			properties: {
-				rule_name: {
-					type: "string",
-					description: "Name of the grammar rule",
-				},
-				level: {
-					type: "string",
-					description: "English level (A1-C2)",
-				},
-				theory: {
-					type: "string",
-					description: "Explanation of the grammar rule with examples",
-				},
-			},
-			required: ["rule_name", "level", "theory"],
-		};
-
 		try {
 			const response = `{
 				"rule_name": "Present Perfect Simple",
@@ -128,7 +112,7 @@ export class GrammarTheoryState extends State {
 			// 			content: userPrompt,
 			// 		},
 			// 	],
-			// 	responseSchema
+			// 	GRAMMAR_THEORY_RESPONSE_SCHEMA
 			// );
 
 			const parsed = JSON.parse(response);
@@ -147,7 +131,7 @@ export class GrammarTheoryState extends State {
 		} catch (error) {
 			console.error("[GrammarTheoryState] Failed to parse LLM response:", error);
 			await ctx.reply("Не удалось загрузить объяснение. Попробуй позже.", {
-				reply_markup: grammarTheoryKeyboard,
+				reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
 			});
 		}
 	}
