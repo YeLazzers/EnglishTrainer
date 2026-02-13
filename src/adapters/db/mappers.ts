@@ -1,4 +1,5 @@
-// Mappers: transform between Persistence layer (DB) and Domain layer
+// @legacy: works with TestUserProfile table.
+// Use @adapters/db/user/mappers for new code.
 
 import type { UserProfile, CreateUserProfile } from "@domain/types";
 import type { TestUserProfile } from "@prisma-types";

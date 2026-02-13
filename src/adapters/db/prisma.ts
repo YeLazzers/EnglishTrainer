@@ -1,4 +1,5 @@
-// Adapter: Prisma implementation of UserRepository
+// @legacy: works with TestUserState/TestUserProfile tables.
+// Use @adapters/db/user/prisma-repository for new code.
 
 import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";

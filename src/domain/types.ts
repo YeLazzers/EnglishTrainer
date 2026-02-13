@@ -1,4 +1,7 @@
 // Domain layer - pure business logic types, no infrastructure dependencies
+//
+// @legacy: UserProfile and CreateUserProfile below are legacy types
+// that work with TestUserProfile table. Use @domain/user for new code.
 
 export enum UserState {
 	ONBOARDING = "ONBOARDING",

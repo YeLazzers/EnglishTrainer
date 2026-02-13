@@ -1,4 +1,5 @@
-// Factory and re-exports (follows /src/llm/ pattern)
+// @legacy: works with TestUserState/TestUserProfile tables.
+// Use @adapters/db/user for new code.
 
 import { UserRepository } from "@domain/repository";
 

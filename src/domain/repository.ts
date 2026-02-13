@@ -1,5 +1,5 @@
-// Port - defines the interface for user data access operations
-// Any implementation must satisfy this interface
+// @legacy: works with TestUserState/TestUserProfile tables.
+// Use @domain/user/repository for new code.
 
 import { UserState, UserProfile, CreateUserProfile } from "./types";
 
