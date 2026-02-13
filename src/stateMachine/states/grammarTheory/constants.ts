@@ -91,7 +91,4 @@ export const GRAMMAR_THEORY_RESPONSE_SCHEMA: JSONSchema = {
 	additionalProperties: false,
 };
 
-export const GRAMMAR_THEORY_REPLY_KEYBOARD = new Keyboard()
-	.text("Другое правило")
-	.text("Меню")
-	.resized();
+export const GRAMMAR_THEORY_REPLY_KEYBOARD = new Keyboard().text("Меню").resized();

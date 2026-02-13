@@ -38,42 +38,39 @@ export class GrammarTheoryState extends State {
 
 	async onEnter(context: StateHandlerContext): Promise<void> {
 		// При входе в GRAMMAR_THEORY генерируем первое правило
-		const { ctx } = context;
-
-		await ctx.reply("Ищем интересное правило грамматики для тебя...", {
-			reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
-		});
-
 		await this.generateAndSendTheory(context);
 	}
 
 	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
 		const { ctx, messageText, callbackData } = context;
 
-		// Обработка inline кнопки "Практика на это правило"
-		// callback_data формат: "practice_grammar:TOPIC_ID"
-		if (callbackData?.startsWith("practice_grammar:")) {
-			const topicId = callbackData.substring("practice_grammar:".length);
+		// Обработка inline кнопок
+		if (callbackData) {
+			// "Практика на это правило" - callback_data формат: "practice_grammar:TOPIC_ID"
+			if (callbackData.startsWith("practice_grammar:")) {
+				const topicId = callbackData.substring("practice_grammar:".length);
 
-			// Получаем название правила из БД
-			const topic = await this.grammarRepository.findTopicById(topicId);
-			const ruleName = topic?.name || "Grammar Practice";
+				// Получаем название правила из БД
+				const topic = await this.grammarRepository.findTopicById(topicId);
+				const ruleName = topic?.name || "Grammar Practice";
 
-			context.grammarTopicId = topicId;
-			context.grammarRule = ruleName;
-			return {
-				nextState: UserState.GRAMMAR_PRACTICE,
-				handled: true,
-			};
+				context.grammarTopicId = topicId;
+				context.grammarRule = ruleName;
+				return {
+					nextState: UserState.GRAMMAR_PRACTICE,
+					handled: true,
+				};
+			}
+
+			// "Другое правило" - callback_data: "another_rule"
+			if (callbackData === "another_rule") {
+				await this.generateAndSendTheory(context);
+				return { handled: true };
+			}
 		}
 
 		// Обработка reply кнопок
 		switch (messageText) {
-			case "Другое правило":
-				// Генерируем новое правило, остаемся в текущем состоянии
-				await this.generateAndSendTheory(context);
-				return { handled: true };
-
 			case "Меню":
 				return {
 					nextState: UserState.MAIN_MENU,
@@ -138,6 +135,10 @@ export class GrammarTheoryState extends State {
 			.replace("{{modeInstruction}}", modeInstruction);
 
 		try {
+			await ctx.reply("Ищем интересное правило грамматики для тебя...", {
+				reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
+			});
+
 			// const response = MOCKED_GRAMMAR_THEORY_RESPONSE;
 			const response = await this.llm.chat(
 				[
@@ -168,12 +169,12 @@ export class GrammarTheoryState extends State {
 			// Отмечаем что пользователь увидел теорию по этому топику
 			await this.grammarRepository.markExposed(user.id, parsed.topic);
 
-			// Создаем inline клавиатуру с кнопкой "Практика на это правило"
-			// callback_data формат: "practice_grammar:TOPIC_ID"
-			const practiceKeyboard = new InlineKeyboard().text(
-				"Практика на это правило",
-				`practice_grammar:${parsed.topic}`
-			);
+			// Создаем inline клавиатуру с кнопками
+			// callback_data форматы: "practice_grammar:TOPIC_ID", "another_rule"
+			const practiceKeyboard = new InlineKeyboard()
+				.text("Практика на это правило", `practice_grammar:${parsed.topic}`)
+				.row()
+				.text("Другое правило", "another_rule");
 
 			// Формируем сообщение: заголовок + краткое описание + основная теория
 			const message = `<b>${parsed.rule_name}</b>\n\n${parsed.summary}\n\n${parsed.theory}`;

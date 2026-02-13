@@ -85,6 +85,7 @@ export const mockPresentPerfectCareerB1: CreateSessionData = {
 	exercises: [
 		{
 			id: "ex-career-1",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.SINGLE_CHOICE,
 			question: "I _____ in the IT industry for 5 years now. It's very rewarding work.",
 			options: ["have worked", "worked", "am working", "have been working"],
@@ -95,6 +96,7 @@ export const mockPresentPerfectCareerB1: CreateSessionData = {
 
 		{
 			id: "ex-career-2",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.FILL_IN_BLANK,
 			question:
 				"He _____ (complete) three major projects this year. His boss is very impressed.",
@@ -105,6 +107,7 @@ export const mockPresentPerfectCareerB1: CreateSessionData = {
 
 		{
 			id: "ex-career-3",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.SINGLE_CHOICE,
 			question: "Our team _____ two successful campaigns in the last month.",
 			options: ["has launched", "have launched", "launched", "are launching"],
@@ -115,6 +118,7 @@ export const mockPresentPerfectCareerB1: CreateSessionData = {
 
 		{
 			id: "ex-career-4",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.FILL_IN_BLANK,
 			question: "_____  you _____ (ever / work) with remote teams before?",
 			correctAnswer: "Have / worked",
@@ -124,6 +128,7 @@ export const mockPresentPerfectCareerB1: CreateSessionData = {
 
 		{
 			id: "ex-career-5",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.SINGLE_CHOICE,
 			question: "I _____ my certification yet, but I'm studying hard for it.",
 			options: ["haven't obtained", "did not obtain", "am not obtaining", "have obtained"],
