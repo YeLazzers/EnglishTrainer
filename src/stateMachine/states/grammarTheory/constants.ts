@@ -2,81 +2,75 @@ import { Keyboard } from "grammy";
 
 import { JSONSchema } from "@llm";
 
-export const GRAMMAR_THEORY_SYSTEM_PROMPT = `Ты — преподаватель английского языка внутри Telegram-бота.
+export const GRAMMAR_THEORY_SYSTEM_PROMPT = `You are an English teacher inside a Telegram bot.
 
-Твоя задача — объяснить ОДНО грамматическое правило на английском языке.
+Task: explain ONE grammar rule.
 
-Требования:
+Rules:
+- If user level > A2: write in English. If A2 or below: mostly Russian.
+- Length: 180–350 words (1–2 mobile screens).
+- Be clear, practical, structured. No academic overload.
+- Include: when to use, formula/structure, 3–5 examples, 2–4 common mistakes, brief summary.
+- No motivational phrases. Do not exceed the length.`;
+// Max 1–3 emoji.
 
-1. Ответ должен быть на английском языке, если уровень пользователя выше A2, иначе в основном на русском.
-2. Объем — 1–2 мобильных экрана (примерно 180–350 слов).
-3. Текст должен быть:
-   - структурированным
-   - понятным
-   - практичным
-   - без академической перегруженности
-4. Обязательно включить:
-   - название правила
-   - когда используется
-   - структуру (формулу)
-   - 3–5 примеров
-   - типичные ошибки (2–4)
-   - краткий итог
-5. Используй HTML-разметку Telegram:
-   - <b>, <i>, <u>, <s>, <code>, <pre> и другие поддерживаемые.
-   - Не используй Markdown.
-   - Не добавляй неподдерживаемые HTML-теги.
-   - Используй списки (• или нумерованные) для примеров и ошибок.
-   - Выделяй важные моменты жирным или курсивом.
-   - Переносить можно только с помощью \\n, не используй <br> для переноса.
-   - Результат должен корректно парситься с помощью JSON.parse()
-6. Можно использовать небольшое количество эмодзи (1–3 максимум).
-7. Не использовать мотивационные фразы.
-9. Не превышать объем.
+// TODO: в будущем rule selection будет опираться на пользовательскую статистику
+// (UserTopicProgress: mastery, lastPracticedAt, exposure) вместо стратегических эвристик
+export const GRAMMAR_THEORY_USER_PROMPT_TEMPLATE = `Generate explanation for one grammar rule.
 
+User level: {{level}}
+Goals: {{goals}}
+Interests: {{interests}}
 
-Если текст в theory получается слишком длинным — автоматически сократи его, если слишком коротким — слегка расширь.
-`;
+Rule selection: prioritize fundamental, high-frequency rules for this level. Focus on real speech and writing. Avoid rare or academic rules.`;
 
-export const GRAMMAR_THEORY_USER_PROMPT_TEMPLATE = `Сгенерируй объяснение одного грамматического правила.
+// Grammar categories from METHODOLOGY.md §3
+const GRAMMAR_CATEGORIES = [
+	"TENSES",
+	"MODALS",
+	"CONDITIONALS",
+	"PASSIVE",
+	"QUESTIONS",
+	"ARTICLES",
+	"NOUNS",
+	"ADJADV",
+	"PREPOSITIONS",
+	"CLAUSES",
+	"VERBPAT",
+	"OTHER",
+] as const;
 
-Уровень пользователя: {{level}}
-Цели пользователя: {{goals}}
-Интересы пользователя: {{interests}}
+const CEFR_LEVELS = ["A1", "A2", "B1", "B2", "C1", "C2"] as const;
 
-Важно:
-
-Выбирай правило стратегически:
-- Начинай с наиболее фундаментальных и часто используемых правил для данного уровня.
-- Отдавай приоритет правилам, которые активно используются в реальной речи и письме.
-- Для времен сначала выбирай наиболее практичные и частотные (например, Present Perfect, затем другие важные времена).
-- Для уровня B1–B2 приоритет — ключевые времена, условные предложения, модальные глаголы, герундий/инфинитив.
-- Для уровня A2 — базовые времена и простые конструкции.
-- Для уровня C1 — более сложные структуры и нюансы.
-
-Не выбирай редкие или академические правила.
-
-Цель — строить фундамент, начиная с наиболее полезных конструкций.
-`;
-
-// JSON Schema для структурированного ответа
 export const GRAMMAR_THEORY_RESPONSE_SCHEMA: JSONSchema = {
 	type: "object",
 	properties: {
+		category: {
+			type: "string",
+			enum: [...GRAMMAR_CATEGORIES],
+			description: "Grammar category ID from the catalog",
+		},
+		topic: {
+			type: "string",
+			description:
+				"Grammar topic ID within category, UPPER_SNAKE_CASE (e.g. PRESENT_PERFECT, FIRST_CONDITIONAL, CAN_COULD)",
+		},
 		rule_name: {
 			type: "string",
-			description: "Name of the grammar rule",
+			description: "Human-readable rule name (e.g. 'Present Perfect Simple')",
 		},
 		level: {
 			type: "string",
-			description: "English level (A1-C2)",
+			enum: [...CEFR_LEVELS],
+			description: "CEFR level of the rule",
 		},
 		theory: {
 			type: "string",
-			description: "Explanation of the grammar rule with examples",
+			description:
+				"Grammar rule explanation. Format: Telegram HTML tags only (<b>, <i>, <code>, <s>, <pre>). No Markdown, no unsupported HTML. Use bullet lists (• or numbered). Use \\n for line breaks, no <br>. Must be valid inside JSON string.",
 		},
 	},
-	required: ["rule_name", "level", "theory"],
+	required: ["category", "topic", "rule_name", "level", "theory"],
 };
 
 export const GRAMMAR_THEORY_REPLY_KEYBOARD = new Keyboard()

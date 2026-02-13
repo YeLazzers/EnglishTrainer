@@ -1,9 +1,8 @@
-import { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
 
+import type { GrammarRepository } from "@domain/grammar/repository";
 import { UserState } from "@domain/types";
-import type { UserProfile } from "@domain/user/types";
-import { createLLM, JSONSchema } from "@llm";
+import { createLLM } from "@llm";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
@@ -13,6 +12,7 @@ import {
 	GRAMMAR_THEORY_REPLY_KEYBOARD,
 	// GRAMMAR_THEORY_RESPONSE_SCHEMA,
 } from "./constants";
+import { MOCKED_GRAMMAR_THEORY_RESPONSE } from "./mocks";
 
 /**
  * GRAMMAR_THEORY состояние
@@ -30,24 +30,30 @@ export class GrammarTheoryState extends State {
 	readonly type = UserState.GRAMMAR_THEORY;
 	private llm = createLLM();
 
+	constructor(private grammarRepository: GrammarRepository) {
+		super();
+	}
+
 	async onEnter(context: StateHandlerContext): Promise<void> {
 		// При входе в GRAMMAR_THEORY генерируем первое правило
-		const { ctx, profile } = context;
+		const { ctx } = context;
 
 		await ctx.reply("Ищем интересное правило грамматики для тебя...", {
 			reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
 		});
 
-		await this.generateAndSendTheory(ctx, profile);
+		await this.generateAndSendTheory(context);
 	}
 
 	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
-		const { ctx, messageText, callbackData, profile } = context;
+		const { ctx, messageText, callbackData } = context;
 
 		// Обработка inline кнопки "Практика на это правило"
-		// callback_data формат: "practice_grammar:RULE_NAME"
+		// callback_data формат: "practice_grammar:TOPIC_ID:RULE_NAME"
 		if (callbackData?.startsWith("practice_grammar:")) {
-			const ruleName = callbackData.substring("practice_grammar:".length);
+			const payload = callbackData.substring("practice_grammar:".length);
+			const [topicId, ruleName] = payload.split(":", 2);
+			context.grammarTopicId = topicId;
 			context.grammarRule = ruleName;
 			return {
 				nextState: UserState.GRAMMAR_PRACTICE,
@@ -59,7 +65,7 @@ export class GrammarTheoryState extends State {
 		switch (messageText) {
 			case "Другое правило":
 				// Генерируем новое правило, остаемся в текущем состоянии
-				await this.generateAndSendTheory(ctx, profile);
+				await this.generateAndSendTheory(context);
 				return { handled: true };
 
 			case "Меню":
@@ -79,12 +85,10 @@ export class GrammarTheoryState extends State {
 
 	/**
 	 * Генерирует и отправляет объяснение правила грамматики
-	 * Логика перенесена из textMessage.ts
 	 */
-	private async generateAndSendTheory(
-		ctx: Context,
-		profile: UserProfile | undefined
-	): Promise<void> {
+	private async generateAndSendTheory(context: StateHandlerContext): Promise<void> {
+		const { ctx, profile, user } = context;
+
 		if (!profile) {
 			await ctx.reply("Профиль не найден. Выполни /start.");
 			return;
@@ -96,11 +100,7 @@ export class GrammarTheoryState extends State {
 			.replace("{{goals}}", profile.goals.join(", "));
 
 		try {
-			const response = `{
-				"rule_name": "Present Perfect Simple",
-				"level": "B2",
-				"theory": "<b>Present Perfect Simple</b> 🕰️\\n\\nThe Present Perfect Simple connects the past with the present. It describes actions that happened at an indefinite time in the past or actions that started in the past and continue into the present.\\n\\n<b>When do we use it?</b>\\n\\n•   To talk about <i>experiences or achievements</i> at an unspecified time in the past. The exact time is not important.\\n    <i>Example: I have travelled to many countries. (When? Not specified.)</i>\\n•   For actions that <i>started in the past and continue up to the present moment</i>. We often use <i>'for'</i> (duration) or <i>'since'</i> (starting point).\\n    <i>Example: She has worked here since 2010.</i>\\n•   For <i>recently completed actions</i> that have a present result. We often use adverbs like <i>'just', 'already', 'yet'</i>.\\n    <i>Example: They have just released a new software update. (The update is now available.)</i>\\n\\n<b>Structure (Formula):</b>\\n\\nSubject + <b>have / has</b> + <b>Past Participle (V3)</b>\\n\\n•   <b>Positive:</b> I <code>have played</code>. He <code>has played</code>.\\n•   <b>Negative:</b> I <code>have not (haven't) played</code>. He <code>has not (hasn't) played</code>.\\n•   <b>Question:</b> <code>Have</code> you <code>played</code>? <code>Has</code> he <code>played</code>?\\n\\n<b>Examples:</b>\\n\\n•   <code>I have played Dota for five years.</code> (Started in the past, still playing.)\\n•   <code>She has never written a line of code.</code> (An experience at an unspecified time.)\\n•   <code>We haven't finished the project yet.</code> (Still ongoing, or just about to be finished.)\\n•   <code>Has he ever visited Silicon Valley?</code> (Asking about a life experience.)\\n•   <code>They have already deployed the new feature.</code> (Completed recently, with a current result.)\\n\\n<b>Typical Mistakes:</b>\\n\\n1.  <b>Using Past Simple instead of Present Perfect:</b>\\n    •   Incorrect: <s>I lived here for 5 years (and still live here).</s>\\n    •   Correct: <code>I have lived here for 5 years.</code>\\n2.  <b>Incorrect auxiliary verb ('have'/'has'):</b>\\n    •   Incorrect: <s>She have played.</s>\\n    •   Correct: <code>She has played.</code>\\n3.  <b>Using incorrect past participle (V3) form:</b>\\n    •   Incorrect: <s>I have went to the meeting.</s>\\n    •   Correct: <code>I have gone to the meeting.</code>\\n4.  <b>Confusing 'for' and 'since':</b>\\n    •   Incorrect: <s>I have worked here since 3 months.</s>\\n    •   Correct: <code>I have worked here for 3 months.</code> (For a duration)\\n    •   Correct: <code>I have worked here since March.</code> (Since a specific point in time)\\n\\n<b>In summary:</b> The Present Perfect Simple is used for actions connected to the present – either continuing, affecting the present, or being part of one's life experience up to now. Think of it as linking a past event to 'now'."
-			}`;
+			const response = MOCKED_GRAMMAR_THEORY_RESPONSE;
 			// const response = await this.llm.chat(
 			// 	[
 			// 		{
@@ -117,11 +117,24 @@ export class GrammarTheoryState extends State {
 
 			const parsed = JSON.parse(response);
 
+			// Сохраняем топик в БД (upsert - создаем если нет, обновляем если есть)
+			await this.grammarRepository.upsertTopic({
+				id: parsed.topic,
+				categoryId: parsed.category,
+				name: parsed.rule_name,
+				nameRu: parsed.rule_name, // TODO: LLM должен возвращать nameRu, пока дублируем name
+				cefrLevel: parsed.level,
+				sortOrder: 0, // TODO: определить логику sortOrder
+			});
+
+			// Отмечаем что пользователь увидел теорию по этому топику
+			await this.grammarRepository.markExposed(user.id, parsed.topic);
+
 			// Создаем inline клавиатуру с кнопкой "Практика на это правило"
-			// Название правила кодируется в callback_data
+			// callback_data формат: "practice_grammar:TOPIC_ID:RULE_NAME"
 			const practiceKeyboard = new InlineKeyboard().text(
 				"Практика на это правило",
-				`practice_grammar:${parsed.rule_name}`
+				`practice_grammar:${parsed.topic}:${parsed.rule_name}`
 			);
 
 			await ctx.reply(parsed.theory, {

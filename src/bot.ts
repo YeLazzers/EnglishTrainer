@@ -1,5 +1,6 @@
 import { Bot } from "grammy";
 
+import { createGrammarRepository } from "@adapters/db/grammar";
 import { createUserRepository } from "@adapters/db/user";
 import { createSessionRepository } from "@adapters/session";
 import { debugCommand } from "@commands/debug";
@@ -21,8 +22,11 @@ const userRepository = createUserRepository();
 // Инициализировать SessionRepository один раз
 const sessionRepository = createSessionRepository();
 
-// Инициализировать State Machine с SessionRepository и UserRepository
-const stateMachine = createStateMachine(sessionRepository, userRepository);
+// Инициализировать GrammarRepository один раз
+const grammarRepository = createGrammarRepository();
+
+// Инициализировать State Machine с SessionRepository, UserRepository и GrammarRepository
+const stateMachine = createStateMachine(sessionRepository, userRepository, grammarRepository);
 
 // Регистрировать команды
 bot.command("debug", debugCommand);

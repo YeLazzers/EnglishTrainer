@@ -11,6 +11,7 @@ import { CreateSessionData, ExerciseType } from "@domain/session-types";
  */
 export const mockPresentPerfectSessionB1: CreateSessionData = {
 	userId: 123456, // Example Telegram user ID
+	topicId: "PRESENT_PERFECT",
 	grammarRule: "Present Perfect",
 	level: "B1",
 
@@ -72,6 +73,7 @@ export const mockPresentPerfectSessionB1: CreateSessionData = {
  */
 export const mockPresentPerfectCareerB1: CreateSessionData = {
 	userId: 123456,
+	topicId: "PRESENT_PERFECT",
 	grammarRule: "Present Perfect",
 	level: "B1",
 

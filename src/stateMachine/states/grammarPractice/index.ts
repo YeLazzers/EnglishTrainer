@@ -69,13 +69,14 @@ export class GrammarPracticeState extends State {
 	}
 
 	async onEnter(context: StateHandlerContext): Promise<void> {
-		const { ctx, user, grammarRule, profile } = context;
+		const { ctx, user, grammarTopicId, grammarRule, profile } = context;
 
 		if (!profile) {
 			await ctx.reply("Профиль не найден. Выполни /start.");
 			return;
 		}
 
+		const topicId = grammarTopicId || "GENERAL_GRAMMAR"; // Fallback для прямого вызова
 		const ruleName = grammarRule || "General Grammar";
 
 		await ctx.reply(`Генерируем упражнения по теме <b>${ruleName}</b>...`, {
@@ -125,6 +126,7 @@ export class GrammarPracticeState extends State {
 			// Create session in Redis
 			const sessionId = await this.sessionRepository.createSession({
 				userId: user.id,
+				topicId,
 				grammarRule: ruleName,
 				level: profile.level,
 				exercises,

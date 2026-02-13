@@ -16,7 +16,8 @@ export interface StateHandlerContext {
 	messageText: string; // Для текстовых сообщений
 	callbackData?: string; // Для callback_query (нажатия на кнопки)
 	profile: UserProfile | undefined; // Профиль пользователя (может быть undefined в ONBOARDING)
-	grammarRule?: string; // Название грамматического правила (передается из GRAMMAR_THEORY в GRAMMAR_PRACTICE)
+	grammarTopicId?: string; // ID грамматического топика (e.g., "PRESENT_PERFECT") для статистики
+	grammarRule?: string; // Название грамматического правила (e.g., "Present Perfect Simple") для отображения
 }
 
 /**

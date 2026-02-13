@@ -1,5 +1,6 @@
 import { Context } from "grammy";
 
+import type { GrammarRepository } from "@domain/grammar/repository";
 import { SessionRepository } from "@domain/session-repository";
 import { UserState } from "@domain/types";
 import { UserRepository } from "@domain/user/repository";
@@ -209,19 +210,21 @@ export class StateMachine {
  *
  * @param sessionRepository SessionRepository для управления практическими сессиями
  * @param userRepository UserRepository для управления пользователями и профилями
+ * @param grammarRepository GrammarRepository для работы с грамматическими топиками и прогрессом
  */
 export function createStateMachine(
 	sessionRepository: SessionRepository,
-	userRepository: UserRepository
+	userRepository: UserRepository,
+	grammarRepository: GrammarRepository
 ): StateMachine {
 	const machine = new StateMachine(userRepository);
 
 	// Регистрируем все состояния
 	machine.register(new OnboardingState(userRepository));
 	machine.register(new MainMenuState());
-	machine.register(new GrammarTheoryState());
+	machine.register(new GrammarTheoryState(grammarRepository));
 	machine.register(new GrammarPracticeState(sessionRepository));
-	machine.register(new PracticeResultState(sessionRepository));
+	machine.register(new PracticeResultState(sessionRepository, grammarRepository));
 	machine.register(new FreeWritingState());
 	machine.register(new WritingFeedbackState());
 	machine.register(new StatsState());
