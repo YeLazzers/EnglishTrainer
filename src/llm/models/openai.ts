@@ -9,7 +9,7 @@ import { BaseLLMAdapter } from "./baseLLM";
 export class OpenAIAdapter extends BaseLLMAdapter {
 	private client: OpenAI;
 
-	constructor(apiKey: string, model = "gpt-4o-mini") {
+	constructor(apiKey: string, model = "gpt-5-mini") {
 		super(model, "openai");
 		this.client = new OpenAI({ apiKey });
 	}

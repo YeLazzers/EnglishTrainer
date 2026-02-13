@@ -8,9 +8,9 @@ Task: explain ONE grammar rule.
 
 Rules:
 - If user level > A2: write in English. If A2 or below: mostly Russian.
-- Length: 180–350 words (1–2 mobile screens).
+- First, provide a brief summary (1-2 sentences) describing what this rule is and its main purpose.
+- Then, provide detailed explanation (180–350 words total): when to use, formula/structure, 3–5 examples, 2–4 common mistakes.
 - Be clear, practical, structured. No academic overload.
-- Include: when to use, formula/structure, 3–5 examples, 2–4 common mistakes, brief summary.
 - No motivational phrases. Do not exceed the length.`;
 // Max 1–3 emoji.
 
@@ -64,13 +64,19 @@ export const GRAMMAR_THEORY_RESPONSE_SCHEMA: JSONSchema = {
 			enum: [...CEFR_LEVELS],
 			description: "CEFR level of the rule",
 		},
+		summary: {
+			type: "string",
+			description:
+				"Brief description (1-2 sentences) of what this rule is and its main purpose. Format: plain text or simple HTML tags.",
+		},
 		theory: {
 			type: "string",
 			description:
-				"Grammar rule explanation. Format: Telegram HTML tags only (<b>, <i>, <code>, <s>, <pre>). No Markdown, no unsupported HTML. Use bullet lists (• or numbered). Use \\n for line breaks, no <br>. Must be valid inside JSON string.",
+				"Grammar rule explanation. Format: Telegram HTML tags only (<b>, <i>, <code>, <s>, <pre>). No Markdown, no unsupported HTML. Use bullet lists (• or numbered). Use \n for line breaks, no <br>. Must be valid inside JSON string.",
 		},
 	},
-	required: ["category", "topic", "rule_name", "level", "theory"],
+	required: ["category", "topic", "rule_name", "level", "summary", "theory"],
+	additionalProperties: false,
 };
 
 export const GRAMMAR_THEORY_REPLY_KEYBOARD = new Keyboard()

@@ -10,7 +10,7 @@ import {
 	GRAMMAR_THEORY_SYSTEM_PROMPT,
 	GRAMMAR_THEORY_USER_PROMPT_TEMPLATE,
 	GRAMMAR_THEORY_REPLY_KEYBOARD,
-	// GRAMMAR_THEORY_RESPONSE_SCHEMA,
+	GRAMMAR_THEORY_RESPONSE_SCHEMA,
 } from "./constants";
 import { MOCKED_GRAMMAR_THEORY_RESPONSE } from "./mocks";
 
@@ -100,20 +100,20 @@ export class GrammarTheoryState extends State {
 			.replace("{{goals}}", profile.goals.join(", "));
 
 		try {
-			const response = MOCKED_GRAMMAR_THEORY_RESPONSE;
-			// const response = await this.llm.chat(
-			// 	[
-			// 		{
-			// 			role: "system",
-			// 			content: GRAMMAR_THEORY_SYSTEM_PROMPT,
-			// 		},
-			// 		{
-			// 			role: "user",
-			// 			content: userPrompt,
-			// 		},
-			// 	],
-			// 	GRAMMAR_THEORY_RESPONSE_SCHEMA
-			// );
+			// const response = MOCKED_GRAMMAR_THEORY_RESPONSE;
+			const response = await this.llm.chat(
+				[
+					{
+						role: "system",
+						content: GRAMMAR_THEORY_SYSTEM_PROMPT,
+					},
+					{
+						role: "user",
+						content: userPrompt,
+					},
+				],
+				GRAMMAR_THEORY_RESPONSE_SCHEMA
+			);
 
 			const parsed = JSON.parse(response);
 
@@ -137,7 +137,10 @@ export class GrammarTheoryState extends State {
 				`practice_grammar:${parsed.topic}:${parsed.rule_name}`
 			);
 
-			await ctx.reply(parsed.theory, {
+			// Формируем сообщение: заголовок + краткое описание + основная теория
+			const message = `<b>${parsed.rule_name}</b>\n\n${parsed.summary}\n\n${parsed.theory}`;
+
+			await ctx.reply(message, {
 				reply_markup: practiceKeyboard,
 				parse_mode: "HTML",
 			});
