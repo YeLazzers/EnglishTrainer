@@ -2,6 +2,7 @@ import { Bot } from "grammy";
 
 import { createGrammarRepository } from "@adapters/db/grammar";
 import { createUserRepository } from "@adapters/db/user";
+import { createExerciseGenerator } from "@adapters/practice";
 import { createSessionRepository } from "@adapters/session";
 import { debugCommand } from "@commands/debug";
 import { createDebugRedisCommand } from "@commands/debugRedis";
@@ -25,8 +26,16 @@ const sessionRepository = createSessionRepository();
 // Инициализировать GrammarRepository один раз
 const grammarRepository = createGrammarRepository();
 
-// Инициализировать State Machine с SessionRepository, UserRepository и GrammarRepository
-const stateMachine = createStateMachine(sessionRepository, userRepository, grammarRepository);
+// Инициализировать ExerciseGenerator один раз
+const exerciseGenerator = createExerciseGenerator(grammarRepository);
+
+// Инициализировать State Machine с SessionRepository, UserRepository, GrammarRepository и ExerciseGenerator
+const stateMachine = createStateMachine(
+	sessionRepository,
+	userRepository,
+	grammarRepository,
+	exerciseGenerator
+);
 
 // Регистрировать команды
 bot.command("debug", debugCommand);

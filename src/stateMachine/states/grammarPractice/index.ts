@@ -1,25 +1,25 @@
 import { InlineKeyboard } from "grammy";
 
+import type { ExerciseGenerator } from "@domain/practice/exercise-generator";
+import type { ExerciseGenerationRequest } from "@domain/practice/types";
 import { SessionRepository } from "@domain/session-repository";
 import { Exercise, ExerciseType } from "@domain/session-types";
 import { UserState } from "@domain/types";
-import { createLLM } from "@llm";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
-import {
-	GRAMMAR_PRACTICE_REPLY_KEYBOARD,
-	GRAMMAR_PRACTICE_RESPONSE_SCHEMA,
-	GRAMMAR_PRACTICE_SYSTEM_PROMPT,
-	GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE,
-} from "./constants";
+import { GRAMMAR_PRACTICE_REPLY_KEYBOARD } from "./constants";
 
 /**
  * GRAMMAR_PRACTICE состояние
  *
- * Вход: Пользователь выбрал "Практика на это правило" из GRAMMAR_THEORY
+ * Вход: Пользователь выбрал "Практика на это правило" из GRAMMAR_THEORY или "Практика" из MAIN_MENU
  * Обработка: Показывает серию упражнений, проверяет ответы, дает фидбэк
  * Выход: После завершения серии переход в PRACTICE_RESULT, или MAIN_MENU при пропуске
+ *
+ * Режимы генерации упражнений:
+ * - topic: упражнения на конкретное правило (из GRAMMAR_THEORY)
+ * - review: упражнения на повторение пройденных правил с приоритетом слабых зон (из MAIN_MENU)
  *
  * Доступные переходы:
  * - При завершении серии → PRACTICE_RESULT
@@ -28,9 +28,11 @@ import {
  */
 export class GrammarPracticeState extends State {
 	readonly type = UserState.GRAMMAR_PRACTICE;
-	private llm = createLLM();
 
-	constructor(private sessionRepository: SessionRepository) {
+	constructor(
+		private sessionRepository: SessionRepository,
+		private exerciseGenerator: ExerciseGenerator
+	) {
 		super();
 	}
 
@@ -75,76 +77,52 @@ export class GrammarPracticeState extends State {
 			return;
 		}
 
-		const topicId = grammarTopicId || "GENERAL_GRAMMAR"; // Fallback для прямого вызова
-		const ruleName = grammarRule || "General Grammar";
+		// Определяем режим генерации
+		const mode = grammarTopicId ? "topic" : "review";
+		const displayName = grammarRule || "пройденные правила";
 
-		await ctx.reply(`Генерируем упражнения по теме <b>${ruleName}</b>...`, {
+		await ctx.reply(`Генерируем упражнения: <b>${displayName}</b>...`, {
 			parse_mode: "HTML",
 			reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 		});
 
 		try {
-			// Build user prompt
-			const userPrompt = GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE.replace(
-				"{{grammarRule}}",
-				ruleName
-			)
-				.replace("{{level}}", profile.level)
-				.replace("{{interests}}", profile.interests.join(", "))
-				.replace("{{goals}}", profile.goals.join(", "));
-
-			// Call LLM
-			const response = await this.llm.chat(
-				[
-					{ role: "system", content: GRAMMAR_PRACTICE_SYSTEM_PROMPT },
-					{ role: "user", content: userPrompt },
-				],
-				GRAMMAR_PRACTICE_RESPONSE_SCHEMA
-			);
-
-			const parsed = JSON.parse(response) as {
-				exercises: Array<{
-					id: string;
-					topicId: string;
-					type: string;
-					question: string;
-					options?: string[];
-					correctAnswer: string;
-				}>;
+			// Формируем запрос на генерацию упражнений
+			const request: ExerciseGenerationRequest = {
+				mode,
+				userId: user.id,
+				level: profile.level,
+				interests: profile.interests,
+				goals: profile.goals,
+				topicId: grammarTopicId,
+				ruleName: grammarRule,
 			};
 
-			// Map LLM response to domain Exercise[]
-			const exercises: Exercise[] = parsed.exercises.map((ex) => ({
-				id: ex.id,
-				topicId: ex.topicId,
-				type: ex.type as ExerciseType,
-				question: ex.question,
-				options: ex.options,
-				correctAnswer: ex.correctAnswer,
-			}));
+			// Генерируем упражнения через адаптер
+			const exercises = await this.exerciseGenerator.generate(request);
 
-			// Create session in Redis
+			// Создаем сессию в Redis
 			const sessionId = await this.sessionRepository.createSession({
 				userId: user.id,
-				topicId,
-				grammarRule: ruleName,
+				topicId: grammarTopicId || "REVIEW_MIXED",
+				grammarRule: displayName,
 				level: profile.level,
 				exercises,
 			});
 
 			console.log(
-				`[GrammarPractice] Created session ${sessionId} for user ${user.id} (rule: ${ruleName}, exercises: ${exercises.length})`
+				`[GrammarPractice] Created session ${sessionId} for user ${user.id} (mode: ${mode}, exercises: ${exercises.length})`
 			);
 
 			await ctx.reply(
-				`🎯 Начинаем практику: <b>${ruleName}</b>\n\nВсего упражнений: ${exercises.length}`,
+				`🎯 Начинаем практику: <b>${displayName}</b>\n\nВсего упражнений: ${exercises.length}`,
 				{
 					parse_mode: "HTML",
 					reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 				}
 			);
 
-			// Send first exercise
+			// Показываем первое упражнение
 			const session = await this.sessionRepository.getSession(user.id);
 			if (session && session.exercises.length > 0) {
 				await this.sendExercise(context, session.exercises[0], 1, session.exercises.length);
