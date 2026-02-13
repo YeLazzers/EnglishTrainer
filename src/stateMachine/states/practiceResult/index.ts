@@ -4,6 +4,8 @@ import { UserState } from "@domain/types";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
+import { PRACTICE_RESULT_REPLY_KEYBOARD } from "./constants";
+
 /**
  * PRACTICE_RESULT состояние
  *
@@ -53,7 +55,8 @@ export class PracticeResultState extends State {
 			// Показываем результаты пользователю
 			const percentage = session.total > 0 ? Math.round((session.correct / session.total) * 100) : 0;
 			await ctx.reply(
-				`✅ Практика завершена!\n\nПравильно: ${session.correct}/${session.total} (${percentage}%)\n\nПрогресс сохранён.`
+				`✅ Практика завершена!\n\nПравильно: ${session.correct}/${session.total} (${percentage}%)\n\nПрогресс сохранён.`,
+				{ reply_markup: PRACTICE_RESULT_REPLY_KEYBOARD }
 			);
 		} catch (error) {
 			console.error("[PracticeResult] Failed to process results:", error);
