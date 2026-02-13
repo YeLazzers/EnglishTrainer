@@ -23,11 +23,9 @@ export interface Exercise {
 export interface PracticeSessionData {
 	userId: number; // Telegram user ID
 	sessionId: string; // Unique session ID (UUID)
-	topicId: string; // Grammar topic ID (e.g., "PRESENT_PERFECT")
-	grammarRule: string; // Human-readable rule name (e.g., "Present Perfect Simple")
 	level: string; // User level (A1, B2, etc.)
 
-	exercises: Exercise[]; // All exercises in this session
+	exercises: Exercise[]; // All exercises in this session (each has its own topicId)
 	currentExerciseIndex: number; // Current question (0-based)
 
 	correct: number; // Number of correct answers

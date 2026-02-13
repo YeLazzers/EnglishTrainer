@@ -23,7 +23,7 @@ export const REVIEW_SYSTEM_PROMPT = `Ты — генератор упражне�
 10) HTML-форматирование в question разрешено (<b>, <i>, <code>).
 11) Минимум токенов — без лишних слов.`;
 
-export const REVIEW_USER_PROMPT_TEMPLATE = `Правила для повторения ({{topicCount}} шт.):
+export const REVIEW_USER_PROMPT_TEMPLATE = `Правила для повторения ({{topicCount}} тем):
 {{topicsSection}}
 
 Уровень: {{level}}

@@ -24,10 +24,11 @@ export function createDebugRedisCommand(sessionRepository: SessionRepository) {
 			}
 
 			// Форматируем информацию о сессии
+			const uniqueTopics = [...new Set(session.exercises.map((e) => e.topicId))];
 			const lines: string[] = [
 				"📊 <b>Redis Session Info</b>\n",
 				`Session ID: <code>${session.sessionId}</code>`,
-				`Grammar Rule: <b>${session.grammarRule}</b>`,
+				`Topics: <b>${uniqueTopics.join(", ")}</b>`,
 				`Level: ${session.level}`,
 				`\n📈 <b>Progress</b>`,
 				`Current Exercise: ${session.currentExerciseIndex + 1}/${session.exercises.length}`,

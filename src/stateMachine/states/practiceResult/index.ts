@@ -5,6 +5,7 @@ import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 import { PRACTICE_RESULT_REPLY_KEYBOARD } from "./constants";
+import { calculateTopicStats } from "./utils";
 
 /**
  * PRACTICE_RESULT состояние
@@ -42,15 +43,18 @@ export class PracticeResultState extends State {
 			// Отмечаем сессию как завершенную
 			await this.sessionRepository.completeSession(user.id);
 
-			// Обновляем UserTopicProgress в БД
-			await this.grammarRepository.updateProgress(user.id, session.topicId, {
-				practiceCount: 1, // Инкремент будет на уровне репозитория (upsert)
-				correctCount: session.correct,
-				totalCount: session.total,
-				lastPracticedAt: new Date(),
-				// TODO: Рассчитывать mastery на основе correctCount/totalCount
-				mastery: Math.round((session.correct / session.total) * 100),
-			});
+			// Группируем упражнения по topicId и обновляем прогресс для каждого топика
+			const topicStats = calculateTopicStats(session.exercises);
+
+			for (const [topicId, stats] of Object.entries(topicStats)) {
+				await this.grammarRepository.updateProgress(user.id, topicId, {
+					practiceCount: 1, // Инкремент будет на уровне репозитория (upsert)
+					correctCount: stats.correct,
+					totalCount: stats.total,
+					lastPracticedAt: new Date(),
+					mastery: Math.round((stats.correct / stats.total) * 100),
+				});
+			}
 
 			// Показываем результаты пользователю
 			const percentage = session.total > 0 ? Math.round((session.correct / session.total) * 100) : 0;

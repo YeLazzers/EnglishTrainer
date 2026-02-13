@@ -79,7 +79,7 @@ export class GrammarPracticeState extends State {
 
 		// Определяем режим генерации
 		const mode = grammarTopicId ? "topic" : "review";
-		const displayName = grammarRule || "пройденные правила";
+		const displayName = grammarRule || "Повторение пройденных правил";
 
 		await ctx.reply(`Генерируем упражнения: <b>${displayName}</b>...`, {
 			parse_mode: "HTML",
@@ -104,8 +104,6 @@ export class GrammarPracticeState extends State {
 			// Создаем сессию в Redis
 			const sessionId = await this.sessionRepository.createSession({
 				userId: user.id,
-				topicId: grammarTopicId || "REVIEW_MIXED",
-				grammarRule: displayName,
 				level: profile.level,
 				exercises,
 			});
@@ -115,7 +113,7 @@ export class GrammarPracticeState extends State {
 			);
 
 			await ctx.reply(
-				`🎯 Начинаем практику: <b>${displayName}</b>\n\nВсего упражнений: ${exercises.length}`,
+				`🎯 Начинаем практику!\n\nВсего упражнений: ${exercises.length}`,
 				{
 					parse_mode: "HTML",
 					reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
