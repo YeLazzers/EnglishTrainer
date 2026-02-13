@@ -1,8 +1,7 @@
 import { Context } from "grammy";
 
+import type { UserRepository } from "@adapters/db/user";
 import { StateMachine } from "@sm";
-
-import { getProfile } from "../state";
 
 /**
  * Обработчик текстовых сообщений со State Machine
@@ -13,8 +12,9 @@ import { getProfile } from "../state";
  * 3. Передать в StateMachine для обработки
  *
  * @param stateMachine Инстанс StateMachine
+ * @param userRepository UserRepository для получения профиля
  */
-export function createMessageHandler(stateMachine: StateMachine) {
+export function createMessageHandler(stateMachine: StateMachine, userRepository: UserRepository) {
 	return async (ctx: Context): Promise<void> => {
 		const userId = ctx.from?.id;
 
@@ -25,10 +25,23 @@ export function createMessageHandler(stateMachine: StateMachine) {
 
 		try {
 			// Получить текущий профиль пользователя
-			const profile = await getProfile(userId);
+			const profile = await userRepository.getProfile(userId);
 
 			// Передать обработку в StateMachine с профилем
-			await stateMachine.handleMessage(ctx, profile);
+			// Конвертируем новый UserProfile в legacy формат для совместимости
+			const legacyProfile = profile
+				? {
+						id: profile.userId,
+						level: profile.level,
+						goals: profile.goals,
+						interests: profile.interests,
+						rawResponse: profile.rawResponse,
+						createdAt: profile.createdAt,
+						updatedAt: profile.updatedAt,
+				  }
+				: undefined;
+
+			await stateMachine.handleMessage(ctx, legacyProfile);
 		} catch (error) {
 			console.error(`[MessageHandler] Error for user ${userId}:`, error);
 			await ctx.reply(

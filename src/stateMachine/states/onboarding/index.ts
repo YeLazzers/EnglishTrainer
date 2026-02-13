@@ -1,10 +1,14 @@
 import { UserState } from "@domain/types";
+import type { UserRepository } from "@domain/user/repository";
 import { createLLM } from "@llm";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
-import { ONBOARDING_SYSTEM_PROMPT, ONBOARDING_RESPONSE_MESSAGE } from "../../constants";
-import { setProfile } from "../../state";
+import {
+	// ONBOARDING_SYSTEM_PROMPT,
+	ONBOARDING_RESPONSE_MESSAGE,
+	ONBOARDING_WELCOME_MESSAGE,
+} from "./constants";
 
 /**
  * ONBOARDING состояние
@@ -17,27 +21,20 @@ export class OnboardingState extends State {
 	readonly type = UserState.ONBOARDING;
 	private llm = createLLM();
 
+	constructor(private userRepository: UserRepository) {
+		super();
+	}
+
 	async onEnter(context: StateHandlerContext): Promise<void> {
 		const { ctx } = context;
-		await ctx.reply(ONBOARDING_RESPONSE_MESSAGE, {
+		await ctx.reply(ONBOARDING_WELCOME_MESSAGE, {
 			reply_markup: { remove_keyboard: true },
 		});
 
 		// const message = await llm.chat([
 		//   {
 		//     role: "system",
-		//     content: `Ты — English Trainer, телеграм-бот для изучения английского языка.
-		//             Пользователь только что запустил бота. Сгенерируй приветственное сообщение для онбординга.
-
-		//             Сообщение должно:
-		//             1. Кратко представить бота (тренажер английского с индивидуальным подходом)
-		//             2. Попросить пользователя рассказать о себе в свободной форме — на английском или русском:
-		//               - Какой у него уровень английского (примерно)
-		//               - Какие цели (разговорный, для работы, путешествия, экзамены и т.д.)
-		//               - Какие темы/увлечения ему интересны
-		//             3. Быть дружелюбным, коротким и не перегруженным
-
-		//             Формат: обычный текст для Telegram (можно использовать эмодзи умеренно). Не используй markdown.`,
+		//     content: ONBOARDING_SYSTEM_PROMPT,
 		//   },
 		// ]);
 	}
@@ -49,21 +46,22 @@ export class OnboardingState extends State {
 			// Отправляем сообщение о том, что анализируем ответ
 			await ctx.reply("Анализирую твой ответ... ⏳");
 
-			const analysis = await this.llm.chat([
-				{
-					role: "system",
-					content: ONBOARDING_SYSTEM_PROMPT,
-				},
-				{
-					role: "user",
-					content: messageText,
-				},
-			]);
+			const analysis = ONBOARDING_RESPONSE_MESSAGE;
+			// const analysis = await this.llm.chat([
+			// 	{
+			// 		role: "system",
+			// 		content: ONBOARDING_SYSTEM_PROMPT,
+			// 	},
+			// 	{
+			// 		role: "user",
+			// 		content: messageText,
+			// 	},
+			// ]);
 
 			const parsed = JSON.parse(analysis);
 
 			// Сохраняем профиль пользователя
-			await setProfile(userId, {
+			await this.userRepository.setProfile(userId, {
 				level: parsed.level,
 				goals: parsed.goals,
 				interests: parsed.interests,

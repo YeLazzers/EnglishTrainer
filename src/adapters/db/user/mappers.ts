@@ -1,12 +1,9 @@
 // Mappers: transform between Prisma models (DB layer) and Domain types
 // Works with "user" and "user_profile" tables
 
-import type {
-	User as PrismaUser,
-	UserProfile as PrismaUserProfile,
-} from "@prisma-types";
-import type { User, UserProfile, CreateUser, CreateUserProfile } from "@domain/user/types";
 import type { UserState } from "@domain/types";
+import type { User, UserProfile, CreateUser, CreateUserProfile } from "@domain/user/types";
+import type { User as PrismaUser, UserProfile as PrismaUserProfile } from "@prisma-types";
 
 export function toDomainUser(db: PrismaUser): User {
 	return {

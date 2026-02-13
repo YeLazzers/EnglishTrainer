@@ -2,8 +2,7 @@ import { Context } from "grammy";
 
 import { SessionRepository } from "@domain/session-repository";
 import { UserState, UserProfile } from "@domain/types";
-
-import { getState, setState } from "../state";
+import { UserRepository } from "@domain/user/repository";
 
 import { State } from "./base";
 import {
@@ -38,6 +37,8 @@ import { StateHandlerContext } from "./types";
 export class StateMachine {
 	private states: Map<UserState, State> = new Map();
 
+	constructor(private userRepository: UserRepository) {}
+
 	/**
 	 * Регистрирует обработчик для состояния
 	 */
@@ -66,7 +67,7 @@ export class StateMachine {
 		}
 
 		// Получаем текущее состояние пользователя
-		const currentState = await getState(userId);
+		const currentState = await this.userRepository.getState(userId);
 
 		// Если пользователя нет в БД, инициализируем в ONBOARDING
 		if (!currentState) {
@@ -127,7 +128,7 @@ export class StateMachine {
 
 		try {
 			// Получаем текущее состояние пользователя
-			const currentState = await getState(userId);
+			const currentState = await this.userRepository.getState(userId);
 
 			if (!currentState) {
 				await ctx.answerCallbackQuery({ text: "Начни новую практику" });
@@ -185,7 +186,7 @@ export class StateMachine {
 		ctx: Context,
 		profile: UserProfile | undefined = undefined
 	): Promise<void> {
-		const currentState = await getState(userId);
+		const currentState = await this.userRepository.getState(userId);
 
 		// Создаем контекст для обработчиков
 		const context: StateHandlerContext = {
@@ -226,7 +227,7 @@ export class StateMachine {
 		}
 
 		// Сохраняем новое состояние
-		await setState(context.userId, toState);
+		await this.userRepository.setState(context.userId, toState);
 
 		// Обновляем контекст с новым состоянием
 		context.currentState = toState;
@@ -243,12 +244,16 @@ export class StateMachine {
  * Создает и возвращает инстанс State Machine с зарегистрированными состояниями
  *
  * @param sessionRepository SessionRepository для управления практическими сессиями
+ * @param userRepository UserRepository для управления пользователями и профилями
  */
-export function createStateMachine(sessionRepository: SessionRepository): StateMachine {
-	const machine = new StateMachine();
+export function createStateMachine(
+	sessionRepository: SessionRepository,
+	userRepository: UserRepository
+): StateMachine {
+	const machine = new StateMachine(userRepository);
 
 	// Регистрируем все состояния
-	machine.register(new OnboardingState());
+	machine.register(new OnboardingState(userRepository));
 	machine.register(new MainMenuState());
 	machine.register(new GrammarTheoryState());
 	machine.register(new GrammarPracticeState(sessionRepository));

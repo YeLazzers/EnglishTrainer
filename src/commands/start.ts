@@ -1,15 +1,16 @@
 import { Context } from "grammy";
 
+import type { UserRepository, CreateUser } from "@adapters/db/user";
 import { StateMachine } from "@sm";
 
 import { mainMenuKeyboard } from "../keyboards";
-import { getProfile, UserState } from "../state";
+import { UserState } from "../state";
 
 /**
  * Фабрика для создания обработчика команды /start
- * Принимает StateMachine для управления переходами состояний
+ * Принимает StateMachine для управления переходами состояний и UserRepository для работы с пользователями
  */
-export function createStartCommand(stateMachine: StateMachine) {
+export function createStartCommand(stateMachine: StateMachine, userRepository: UserRepository) {
 	return async (ctx: Context): Promise<void> => {
 		const userId = ctx.from?.id;
 		if (!userId) {
@@ -17,11 +18,25 @@ export function createStartCommand(stateMachine: StateMachine) {
 			return;
 		}
 
-		const existingProfile = await getProfile(userId);
+		// Извлекаем данные пользователя из Telegram контекста
+		const createUserData: CreateUser = {
+			id: userId,
+			firstName: ctx.from?.first_name ?? "Unknown",
+			lastName: ctx.from?.last_name ?? null,
+			username: ctx.from?.username ?? null,
+			languageCode: ctx.from?.language_code ?? null,
+			isPremium: ctx.from?.is_premium ?? false,
+		};
+
+		// Создаем или обновляем пользователя в БД
+		await userRepository.upsert(createUserData);
+
+		// Проверяем наличие профиля обучения
+		const existingProfile = await userRepository.getProfile(userId);
 
 		if (existingProfile) {
 			// User already completed onboarding, restore to MAIN_MENU
-			await stateMachine.changeStateTo(userId, UserState.MAIN_MENU, ctx, existingProfile);
+			await stateMachine.changeStateTo(userId, UserState.MAIN_MENU, ctx);
 			await ctx.reply("Добро пожаловать обратно! 👋", {
 				reply_markup: mainMenuKeyboard,
 			});

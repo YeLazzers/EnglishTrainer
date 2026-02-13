@@ -26,17 +26,15 @@ export interface StateHandlerResult {
 }
 
 /**
- * Handler для обработки текстового сообщения в конкретном состоянии
- */
-export type StateMessageHandler = (context: StateHandlerContext) => Promise<StateHandlerResult>;
-
-/**
  * Конфигурация состояния
  * Все методы принимают единый StateHandlerContext
  */
 export interface StateConfig {
 	type: UserState;
 	onEnter?: (context: StateHandlerContext) => Promise<void>;
-	handle: StateMessageHandler;
+	/**
+	 * Handler для обработки текстового сообщения в конкретном состоянии
+	 */
+	handle: (context: StateHandlerContext) => Promise<StateHandlerResult>;
 	onExit?: (context: StateHandlerContext) => Promise<void>;
 }

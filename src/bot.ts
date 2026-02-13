@@ -1,13 +1,12 @@
 import { Bot } from "grammy";
 
+import { createUserRepository } from "@adapters/db/user";
 import { createSessionRepository } from "@adapters/session";
 import { debugCommand } from "@commands/debug";
 import { createDebugRedisCommand } from "@commands/debugRedis";
 import { createStartCommand } from "@commands/start";
 import { createMessageHandler } from "@handlers/messageWithStateMachine";
 import { createStateMachine } from "@sm";
-
-import { getProfile } from "./state";
 
 const token = process.env.BOT_TOKEN;
 if (!token) {
@@ -16,20 +15,23 @@ if (!token) {
 
 const bot = new Bot(token);
 
+// Инициализировать UserRepository один раз
+const userRepository = createUserRepository();
+
 // Инициализировать SessionRepository один раз
 const sessionRepository = createSessionRepository();
 
-// Инициализировать State Machine с SessionRepository
-const stateMachine = createStateMachine(sessionRepository);
+// Инициализировать State Machine с SessionRepository и UserRepository
+const stateMachine = createStateMachine(sessionRepository, userRepository);
 
 // Регистрировать команды
 bot.command("debug", debugCommand);
 bot.command("debug_redis", createDebugRedisCommand(sessionRepository));
-bot.command("start", createStartCommand(stateMachine));
+bot.command("start", createStartCommand(stateMachine, userRepository));
 
 // Регистрировать обработчик текстовых сообщений
 // Этот обработчик инициализирует пользователя и передает в State Machine
-bot.on("message:text", createMessageHandler(stateMachine));
+bot.on("message:text", createMessageHandler(stateMachine, userRepository));
 
 // Регистрировать обработчик callback_query (нажатия на inline_buttons)
 bot.on("callback_query", async (ctx) => {
@@ -40,8 +42,22 @@ bot.on("callback_query", async (ctx) => {
 	}
 
 	try {
-		const profile = await getProfile(userId);
-		await stateMachine.handleCallback(ctx, profile);
+		const profile = await userRepository.getProfile(userId);
+
+		// Конвертируем новый UserProfile в legacy формат для совместимости
+		const legacyProfile = profile
+			? {
+					id: profile.userId,
+					level: profile.level,
+					goals: profile.goals,
+					interests: profile.interests,
+					rawResponse: profile.rawResponse,
+					createdAt: profile.createdAt,
+					updatedAt: profile.updatedAt,
+			  }
+			: undefined;
+
+		await stateMachine.handleCallback(ctx, legacyProfile);
 	} catch (error) {
 		console.error(`[CallbackQuery] Error for user ${userId}:`, error);
 		await ctx.answerCallbackQuery({ text: "Произошла ошибка при обработке ответа" });
