@@ -9,11 +9,10 @@ import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 import {
 	GRAMMAR_PRACTICE_REPLY_KEYBOARD,
-	// GRAMMAR_PRACTICE_RESPONSE_SCHEMA,
-	// GRAMMAR_PRACTICE_SYSTEM_PROMPT,
-	// GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE,
+	GRAMMAR_PRACTICE_RESPONSE_SCHEMA,
+	GRAMMAR_PRACTICE_SYSTEM_PROMPT,
+	GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE,
 } from "./constants";
-import { MOCKED_EXERCISES_RESPONSE } from "./mocks";
 
 /**
  * GRAMMAR_PRACTICE состояние
@@ -86,27 +85,27 @@ export class GrammarPracticeState extends State {
 
 		try {
 			// Build user prompt
-			// const userPrompt = GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE.replace(
-			// 	"{{grammarRule}}",
-			// 	ruleName
-			// )
-			// 	.replace("{{level}}", profile.level)
-			// 	.replace("{{interests}}", profile.interests.join(", "))
-			// 	.replace("{{goals}}", profile.goals.join(", "));
+			const userPrompt = GRAMMAR_PRACTICE_USER_PROMPT_TEMPLATE.replace(
+				"{{grammarRule}}",
+				ruleName
+			)
+				.replace("{{level}}", profile.level)
+				.replace("{{interests}}", profile.interests.join(", "))
+				.replace("{{goals}}", profile.goals.join(", "));
 
 			// Call LLM
-			// const response = await this.llm.chat(
-			// 	[
-			// 		{ role: "system", content: GRAMMAR_PRACTICE_SYSTEM_PROMPT },
-			// 		{ role: "user", content: userPrompt },
-			// 	],
-			// 	GRAMMAR_PRACTICE_RESPONSE_SCHEMA
-			// );
-			const response = JSON.stringify(MOCKED_EXERCISES_RESPONSE); // Mocked for now
+			const response = await this.llm.chat(
+				[
+					{ role: "system", content: GRAMMAR_PRACTICE_SYSTEM_PROMPT },
+					{ role: "user", content: userPrompt },
+				],
+				GRAMMAR_PRACTICE_RESPONSE_SCHEMA
+			);
 
 			const parsed = JSON.parse(response) as {
 				exercises: Array<{
 					id: string;
+					topicId: string;
 					type: string;
 					question: string;
 					options?: string[];
@@ -117,6 +116,7 @@ export class GrammarPracticeState extends State {
 			// Map LLM response to domain Exercise[]
 			const exercises: Exercise[] = parsed.exercises.map((ex) => ({
 				id: ex.id,
+				topicId: ex.topicId,
 				type: ex.type as ExerciseType,
 				question: ex.question,
 				options: ex.options,

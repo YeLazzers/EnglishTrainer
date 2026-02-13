@@ -2,6 +2,12 @@ import { Keyboard } from "grammy";
 
 import { JSONSchema } from "@llm";
 
+// Rule generation modes
+export type RuleGenerationMode = "new" | "review" | "adaptive";
+
+// Mastery threshold for "problematic" topics
+export const LOW_MASTERY_THRESHOLD = 70;
+
 export const GRAMMAR_THEORY_SYSTEM_PROMPT = `You are an English teacher inside a Telegram bot.
 
 Task: explain ONE grammar rule.
@@ -11,18 +17,24 @@ Rules:
 - First, provide a brief summary (1-2 sentences) describing what this rule is and its main purpose.
 - Then, provide detailed explanation (180–350 words total): when to use, formula/structure, 3–5 examples, 2–4 common mistakes.
 - Be clear, practical, structured. No academic overload.
-- No motivational phrases. Do not exceed the length.`;
+- No motivational phrases. Do not exceed the length.
+
+Rule selection strategy:
+- IMPORTANT: Maximize diversity. Vary grammar categories (tenses, modals, conditionals, articles, etc.).
+- Avoid repeating the same category consecutively unless explicitly requested.
+- Consider different difficulty levels within user's range (e.g., if B1, mix A2-B1-B2 rules).
+- If user has learned topics, avoid repeating them unless specifically marked for review.`;
 // Max 1–3 emoji.
 
-// TODO: в будущем rule selection будет опираться на пользовательскую статистику
-// (UserTopicProgress: mastery, lastPracticedAt, exposure) вместо стратегических эвристик
 export const GRAMMAR_THEORY_USER_PROMPT_TEMPLATE = `Generate explanation for one grammar rule.
 
 User level: {{level}}
 Goals: {{goals}}
 Interests: {{interests}}
 
-Rule selection: prioritize fundamental, high-frequency rules for this level. Focus on real speech and writing. Avoid rare or academic rules.`;
+{{historySection}}
+
+Rule selection: prioritize fundamental, high-frequency rules for this level. Focus on real speech and writing. Avoid rare or academic rules.{{modeInstruction}}`;
 
 // Grammar categories from METHODOLOGY.md §3
 const GRAMMAR_CATEGORIES = [

@@ -14,6 +14,7 @@ export interface GrammarRepository {
 
 	// UserTopicProgress operations
 	getProgress(userId: number, topicId: string): Promise<UserTopicProgress | null>;
+	getAllUserProgress(userId: number): Promise<UserTopicProgress[]>;
 	markExposed(userId: number, topicId: string): Promise<void>;
 	updateProgress(userId: number, topicId: string, data: UpdateUserTopicProgress): Promise<void>;
 }

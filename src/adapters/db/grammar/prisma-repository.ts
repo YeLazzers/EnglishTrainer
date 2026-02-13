@@ -44,6 +44,21 @@ export class PrismaGrammarRepository implements GrammarRepository {
 		return record ? toDomainProgress(record) : null;
 	}
 
+	async getAllUserProgress(userId: number): Promise<UserTopicProgress[]> {
+		const records = await this.prisma.userTopicProgress.findMany({
+			where: { userId },
+			include: {
+				topic: true, // Include topic data for richer context
+			},
+			orderBy: [
+				{ lastPracticedAt: "desc" }, // Most recent first
+				{ createdAt: "desc" },
+			],
+		});
+
+		return records.map((r) => toDomainProgress(r));
+	}
+
 	async markExposed(userId: number, topicId: string): Promise<void> {
 		console.log(`[grammar] user=${userId} exposed to topic=${topicId}`);
 

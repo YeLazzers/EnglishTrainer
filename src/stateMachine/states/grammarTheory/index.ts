@@ -11,8 +11,10 @@ import {
 	GRAMMAR_THEORY_USER_PROMPT_TEMPLATE,
 	GRAMMAR_THEORY_REPLY_KEYBOARD,
 	GRAMMAR_THEORY_RESPONSE_SCHEMA,
+	RuleGenerationMode,
+	LOW_MASTERY_THRESHOLD,
 } from "./constants";
-import { MOCKED_GRAMMAR_THEORY_RESPONSE } from "./mocks";
+import { getModeInstruction } from "./utils";
 
 /**
  * GRAMMAR_THEORY состояние
@@ -49,10 +51,14 @@ export class GrammarTheoryState extends State {
 		const { ctx, messageText, callbackData } = context;
 
 		// Обработка inline кнопки "Практика на это правило"
-		// callback_data формат: "practice_grammar:TOPIC_ID:RULE_NAME"
+		// callback_data формат: "practice_grammar:TOPIC_ID"
 		if (callbackData?.startsWith("practice_grammar:")) {
-			const payload = callbackData.substring("practice_grammar:".length);
-			const [topicId, ruleName] = payload.split(":", 2);
+			const topicId = callbackData.substring("practice_grammar:".length);
+
+			// Получаем название правила из БД
+			const topic = await this.grammarRepository.findTopicById(topicId);
+			const ruleName = topic?.name || "Grammar Practice";
+
 			context.grammarTopicId = topicId;
 			context.grammarRule = ruleName;
 			return {
@@ -86,7 +92,10 @@ export class GrammarTheoryState extends State {
 	/**
 	 * Генерирует и отправляет объяснение правила грамматики
 	 */
-	private async generateAndSendTheory(context: StateHandlerContext): Promise<void> {
+	private async generateAndSendTheory(
+		context: StateHandlerContext,
+		mode: RuleGenerationMode = "adaptive"
+	): Promise<void> {
 		const { ctx, profile, user } = context;
 
 		if (!profile) {
@@ -94,10 +103,39 @@ export class GrammarTheoryState extends State {
 			return;
 		}
 
-		// Build user prompt with interests and level
+		// Получаем весь прогресс пользователя
+		const userProgress = await this.grammarRepository.getAllUserProgress(user.id);
+
+		// Формируем секцию истории для промпта
+		let historySection = "";
+		if (userProgress.length > 0) {
+			const exposedTopics = userProgress.filter((p) => p.exposed).map((p) => p.topicId);
+			const lowMasteryTopics = userProgress
+				.filter(
+					(p) =>
+						p.practiceCount === 0 ||
+						(p.mastery < LOW_MASTERY_THRESHOLD && p.totalCount > 0)
+				)
+				.map((p) => `${p.topicId} (mastery: ${p.mastery}%)`);
+
+			if (exposedTopics.length > 0) {
+				historySection += `\nAlready exposed topics (user has seen theory):\n${exposedTopics.join(", ")}`;
+			}
+
+			if (lowMasteryTopics.length > 0) {
+				historySection += `\n\nTopics with low mastery (< ${LOW_MASTERY_THRESHOLD}%, need review):\n${lowMasteryTopics.join(", ")}`;
+			}
+		}
+
+		// Получаем инструкцию для текущего режима
+		const modeInstruction = getModeInstruction(mode);
+
+		// Build user prompt with interests, level, history, and mode
 		const userPrompt = GRAMMAR_THEORY_USER_PROMPT_TEMPLATE.replace("{{level}}", profile.level)
 			.replace("{{interests}}", profile.interests.join(", "))
-			.replace("{{goals}}", profile.goals.join(", "));
+			.replace("{{goals}}", profile.goals.join(", "))
+			.replace("{{historySection}}", historySection)
+			.replace("{{modeInstruction}}", modeInstruction);
 
 		try {
 			// const response = MOCKED_GRAMMAR_THEORY_RESPONSE;
@@ -131,10 +169,10 @@ export class GrammarTheoryState extends State {
 			await this.grammarRepository.markExposed(user.id, parsed.topic);
 
 			// Создаем inline клавиатуру с кнопкой "Практика на это правило"
-			// callback_data формат: "practice_grammar:TOPIC_ID:RULE_NAME"
+			// callback_data формат: "practice_grammar:TOPIC_ID"
 			const practiceKeyboard = new InlineKeyboard().text(
 				"Практика на это правило",
-				`practice_grammar:${parsed.topic}:${parsed.rule_name}`
+				`practice_grammar:${parsed.topic}`
 			);
 
 			// Формируем сообщение: заголовок + краткое описание + основная теория

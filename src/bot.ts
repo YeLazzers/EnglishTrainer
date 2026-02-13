@@ -63,5 +63,14 @@ bot.on("callback_query", async (ctx) => {
 	}
 });
 
+// Глобальный обработчик ошибок
+bot.catch((err) => {
+	const ctx = err.ctx;
+	console.error("[Bot Error]", err.error);
+	if (ctx && ctx.reply) {
+		ctx.reply("Произошла непредвиденная ошибка. Попробуйте позже.").catch(() => {});
+	}
+});
+
 void bot.start();
 console.log("[Boot] Bot is running...");

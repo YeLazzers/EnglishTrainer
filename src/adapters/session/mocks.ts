@@ -18,6 +18,7 @@ export const mockPresentPerfectSessionB1: CreateSessionData = {
 	exercises: [
 		{
 			id: "ex-1",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.SINGLE_CHOICE,
 			question: "I _____ to Paris three times in my life. It's such a beautiful city!",
 			options: ["have been", "am been", "was being", "had been"],
@@ -28,6 +29,7 @@ export const mockPresentPerfectSessionB1: CreateSessionData = {
 
 		{
 			id: "ex-2",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.FILL_IN_BLANK,
 			question:
 				"She _____ (not / see) that movie yet, but she wants to watch it this weekend.",
@@ -38,6 +40,7 @@ export const mockPresentPerfectSessionB1: CreateSessionData = {
 
 		{
 			id: "ex-3",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.SINGLE_CHOICE,
 			question: "How long _____ you _____ English? Since you were a child?",
 			options: ["have / studied", "have / been studying", "are / studying", "do / study"],
@@ -48,6 +51,7 @@ export const mockPresentPerfectSessionB1: CreateSessionData = {
 
 		{
 			id: "ex-4",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.FILL_IN_BLANK,
 			question: "We _____ (just / finish) our project. Can we take a break now?",
 			correctAnswer: "have just finished",
@@ -57,6 +61,7 @@ export const mockPresentPerfectSessionB1: CreateSessionData = {
 
 		{
 			id: "ex-5",
+			topicId: "PRESENT_PERFECT",
 			type: ExerciseType.SINGLE_CHOICE,
 			question:
 				"The restaurant _____ its menu since they hired the new chef. The food is much better now.",

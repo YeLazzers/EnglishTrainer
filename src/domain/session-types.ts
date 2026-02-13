@@ -10,6 +10,7 @@ export enum ExerciseType {
 
 export interface Exercise {
 	id: string; // Unique exercise ID
+	topicId: string; // Grammar topic ID this exercise targets (e.g., "PRESENT_PERFECT")
 	type: ExerciseType;
 	question: string; // Question text in English
 	options?: string[]; // For single choice (2-4 options)

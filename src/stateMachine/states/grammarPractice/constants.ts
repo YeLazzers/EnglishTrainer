@@ -17,6 +17,7 @@ export const GRAMMAR_PRACTICE_SYSTEM_PROMPT = `Ты — генератор уп�
 5) Не используй редкую лексику. Темы — повседневные или рабочие.
 6) single_choice: correctAnswer — правильный вариант из options.
 7) fill_in_blank: correctAnswer — все допустимые варианты через "|" ("is not|isn't"). В question укажи формат ответа (поставь глагол в нужную форму / выбери из вариантов через слэш и т.д.).
+8) ВАЖНО: для каждого упражнения укажи topicId — ID грамматического топика (UPPER_SNAKE_CASE, например: PRESENT_PERFECT, FIRST_CONDITIONAL).
 9) Можно использовать HTML-форматирование в question (<b>, <i>, <code>).
 10) Минимум токенов — без лишних слов и пояснений.
 11) Перемешай упражнения разных типов в случайном порядке — не группируй по типу.`;
@@ -40,6 +41,11 @@ export const GRAMMAR_PRACTICE_RESPONSE_SCHEMA: JSONSchema = {
 						type: "string",
 						description: "Unique ID (ex_01, ex_02, ...)",
 					},
+					topicId: {
+						type: "string",
+						description:
+							"Grammar topic ID this exercise targets (e.g. PRESENT_PERFECT, FIRST_CONDITIONAL). Use UPPER_SNAKE_CASE.",
+					},
 					type: {
 						type: "string",
 						enum: [ExerciseType.SINGLE_CHOICE, ExerciseType.FILL_IN_BLANK],
@@ -52,7 +58,7 @@ export const GRAMMAR_PRACTICE_RESPONSE_SCHEMA: JSONSchema = {
 					options: {
 						type: "array",
 						items: { type: "string" },
-						description: "Choices for single_choice (2-4 options)",
+						description: "Choices for single_choice (2-4 options). Empty for fill_in_blank",
 					},
 					correctAnswer: {
 						type: "string",
@@ -60,10 +66,12 @@ export const GRAMMAR_PRACTICE_RESPONSE_SCHEMA: JSONSchema = {
 							"Correct answer. For single_choice — one of options. For fill_in_blank — pipe-separated accepted variants (e.g. is not|isn't)",
 					},
 				},
-				required: ["id", "type", "question", "correctAnswer"],
+				additionalProperties: false,
+				required: ["id", "topicId", "type", "question", "options", "correctAnswer"],
 			},
 		},
 	},
+	additionalProperties: false,
 	required: ["exercises"],
 };
 

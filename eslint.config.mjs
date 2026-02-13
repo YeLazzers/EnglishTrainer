@@ -6,6 +6,7 @@ import perfectionist from "eslint-plugin-perfectionist";
 export default tseslint.config(
 	{
 		ignores: [
+			"prisma/**",
 			"dist/**",
 			"node_modules/**",
 			"src/generated/**",
