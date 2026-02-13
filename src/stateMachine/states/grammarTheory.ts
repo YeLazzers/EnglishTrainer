@@ -1,7 +1,8 @@
 import { Context } from "grammy";
 import { InlineKeyboard } from "grammy";
 
-import { UserState, UserProfile } from "@domain/types";
+import { UserState } from "@domain/types";
+import type { UserProfile } from "@domain/user/types";
 import { createLLM, JSONSchema } from "@llm";
 import { State } from "@sm/base";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";

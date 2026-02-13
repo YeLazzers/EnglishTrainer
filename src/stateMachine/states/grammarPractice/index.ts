@@ -69,7 +69,7 @@ export class GrammarPracticeState extends State {
 	}
 
 	async onEnter(context: StateHandlerContext): Promise<void> {
-		const { ctx, userId, grammarRule, profile } = context;
+		const { ctx, user, grammarRule, profile } = context;
 
 		if (!profile) {
 			await ctx.reply("Профиль не найден. Выполни /start.");
@@ -124,14 +124,14 @@ export class GrammarPracticeState extends State {
 
 			// Create session in Redis
 			const sessionId = await this.sessionRepository.createSession({
-				userId,
+				userId: user.id,
 				grammarRule: ruleName,
 				level: profile.level,
 				exercises,
 			});
 
 			console.log(
-				`[GrammarPractice] Created session ${sessionId} for user ${userId} (rule: ${ruleName}, exercises: ${exercises.length})`
+				`[GrammarPractice] Created session ${sessionId} for user ${user.id} (rule: ${ruleName}, exercises: ${exercises.length})`
 			);
 
 			await ctx.reply(
@@ -143,12 +143,12 @@ export class GrammarPracticeState extends State {
 			);
 
 			// Send first exercise
-			const session = await this.sessionRepository.getSession(userId);
+			const session = await this.sessionRepository.getSession(user.id);
 			if (session && session.exercises.length > 0) {
 				await this.sendExercise(context, session.exercises[0], 1, session.exercises.length);
 			}
 		} catch (error) {
-			console.error(`[GrammarPractice] Error in onEnter for user ${userId}:`, error);
+			console.error(`[GrammarPractice] Error in onEnter for user ${user.id}:`, error);
 			await ctx.reply("Не удалось загрузить практику. Попробуй позже или напиши /start.");
 		}
 	}
@@ -198,7 +198,7 @@ export class GrammarPracticeState extends State {
 		context: StateHandlerContext,
 		callbackData: string
 	): Promise<StateHandlerResult> {
-		const { ctx, userId } = context;
+		const { ctx, user } = context;
 
 		try {
 			// Парсим callback_data: answer_{exerciseId}_{optionIndex}
@@ -211,7 +211,7 @@ export class GrammarPracticeState extends State {
 			const optionIndex = parseInt(parts[parts.length - 1]);
 
 			// Получить сессию
-			const session = await this.sessionRepository.getSession(userId);
+			const session = await this.sessionRepository.getSession(user.id);
 
 			if (!session) {
 				await ctx.reply("Сессия не найдена.");
@@ -233,13 +233,13 @@ export class GrammarPracticeState extends State {
 
 			// Записать ответ
 			const userAnswer = currentExercise.options[optionIndex];
-			await this.sessionRepository.updateSession(userId, {
+			await this.sessionRepository.updateSession(user.id, {
 				exerciseId: currentExercise.id,
 				userAnswer,
 			});
 
 			// Выдать результат (правильно/неправильно)
-			const updatedSession = await this.sessionRepository.getSession(userId);
+			const updatedSession = await this.sessionRepository.getSession(user.id);
 			const answeredExercise = updatedSession?.exercises[session.currentExerciseIndex];
 
 			if (answeredExercise?.isCorrect) {
@@ -259,7 +259,7 @@ export class GrammarPracticeState extends State {
 			return { handled: true };
 		} catch (error) {
 			console.error(
-				`[GrammarPractice] Error handling button answer for user ${userId}:`,
+				`[GrammarPractice] Error handling button answer for user ${user.id}:`,
 				error
 			);
 			await ctx.reply("Ошибка при обработке ответа.", {
@@ -276,10 +276,10 @@ export class GrammarPracticeState extends State {
 		context: StateHandlerContext,
 		userAnswer: string
 	): Promise<StateHandlerResult> {
-		const { ctx, userId } = context;
+		const { ctx, user } = context;
 
 		try {
-			const session = await this.sessionRepository.getSession(userId);
+			const session = await this.sessionRepository.getSession(user.id);
 
 			if (!session) {
 				await ctx.reply("Сессия не найдена.");
@@ -300,13 +300,13 @@ export class GrammarPracticeState extends State {
 			}
 
 			// Записать ответ
-			await this.sessionRepository.updateSession(userId, {
+			await this.sessionRepository.updateSession(user.id, {
 				exerciseId: currentExercise.id,
 				userAnswer,
 			});
 
 			// Выдать результат (правильно/неправильно)
-			const updatedSession = await this.sessionRepository.getSession(userId);
+			const updatedSession = await this.sessionRepository.getSession(user.id);
 			const answeredExercise = updatedSession?.exercises[session.currentExerciseIndex];
 
 			if (answeredExercise?.isCorrect) {
@@ -324,7 +324,7 @@ export class GrammarPracticeState extends State {
 			return { handled: true };
 		} catch (error) {
 			console.error(
-				`[GrammarPractice] Error handling text answer for user ${userId}:`,
+				`[GrammarPractice] Error handling text answer for user ${user.id}:`,
 				error
 			);
 			await ctx.reply("Ошибка при обработке ответа.", {
@@ -338,10 +338,10 @@ export class GrammarPracticeState extends State {
 	 * Выдает следующее упражнение или завершает сессию если упражнения закончились
 	 */
 	private async sendNextExerciseOrComplete(context: StateHandlerContext): Promise<void> {
-		const { ctx, userId } = context;
+		const { ctx, user } = context;
 
 		try {
-			const session = await this.sessionRepository.getSession(userId);
+			const session = await this.sessionRepository.getSession(user.id);
 
 			if (!session) {
 				await ctx.reply("Ошибка сессии.");
@@ -360,7 +360,7 @@ export class GrammarPracticeState extends State {
 				);
 			} else {
 				// Все упражнения закончились - завершить сессию
-				await this.sessionRepository.completeSession(userId);
+				await this.sessionRepository.completeSession(user.id);
 				await ctx.reply(
 					"🎉 Все упражнения закончились!\n\nНажми 'Завершить' для просмотра результатов.",
 					{
@@ -370,7 +370,7 @@ export class GrammarPracticeState extends State {
 			}
 		} catch (error) {
 			console.error(
-				`[GrammarPractice] Error in sendNextExerciseOrComplete for user ${userId}:`,
+				`[GrammarPractice] Error in sendNextExerciseOrComplete for user ${user.id}:`,
 				error
 			);
 			await ctx.reply("Ошибка при загрузке упражнения.", {
@@ -383,10 +383,10 @@ export class GrammarPracticeState extends State {
 	 * Обработчик пропуска упражнения (пустой ответ)
 	 */
 	private async handleSkip(context: StateHandlerContext): Promise<StateHandlerResult> {
-		const { ctx, userId } = context;
+		const { ctx, user } = context;
 
 		try {
-			const session = await this.sessionRepository.getSession(userId);
+			const session = await this.sessionRepository.getSession(user.id);
 
 			if (!session) {
 				await ctx.reply("Сессия не найдена. Начни заново с /start.");
@@ -402,7 +402,7 @@ export class GrammarPracticeState extends State {
 			}
 
 			// Пропустить упражнение (пустой ответ)
-			await this.sessionRepository.updateSession(userId, {
+			await this.sessionRepository.updateSession(user.id, {
 				exerciseId: currentExercise.id,
 				userAnswer: "",
 			});
@@ -412,7 +412,7 @@ export class GrammarPracticeState extends State {
 
 			return { handled: true };
 		} catch (error) {
-			console.error(`[GrammarPractice] Error skipping exercise for user ${userId}:`, error);
+			console.error(`[GrammarPractice] Error skipping exercise for user ${user.id}:`, error);
 			await ctx.reply("Ошибка при пропуске упражнения.", {
 				reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
 			});

@@ -42,22 +42,17 @@ bot.on("callback_query", async (ctx) => {
 	}
 
 	try {
+		const user = await userRepository.findById(userId);
+
+		if (!user) {
+			// Пользователь не вызвал /start — игнорируем
+			await ctx.answerCallbackQuery();
+			return;
+		}
+
 		const profile = await userRepository.getProfile(userId);
 
-		// Конвертируем новый UserProfile в legacy формат для совместимости
-		const legacyProfile = profile
-			? {
-					id: profile.userId,
-					level: profile.level,
-					goals: profile.goals,
-					interests: profile.interests,
-					rawResponse: profile.rawResponse,
-					createdAt: profile.createdAt,
-					updatedAt: profile.updatedAt,
-			  }
-			: undefined;
-
-		await stateMachine.handleCallback(ctx, legacyProfile);
+		await stateMachine.handleCallback(ctx, user, profile ?? undefined);
 	} catch (error) {
 		console.error(`[CallbackQuery] Error for user ${userId}:`, error);
 		await ctx.answerCallbackQuery({ text: "Произошла ошибка при обработке ответа" });

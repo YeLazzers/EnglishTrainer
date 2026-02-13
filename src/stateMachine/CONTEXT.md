@@ -11,7 +11,9 @@ stateMachine/
 ├── types.ts             # StateHandlerContext, StateHandlerResult, StateConfig
 └── states/
     ├── index.ts                  # Barrel-экспорт всех состояний
-    ├── onboarding.ts             # ONBOARDING — первичный ввод, LLM-анализ профиля
+    ├── onboarding/               # ONBOARDING — первичный ввод, LLM-анализ профиля
+    │   ├── index.ts              # OnboardingState class
+    │   └── constants.ts          # Welcome/system/response messages
     ├── mainMenu.ts               # MAIN_MENU — навигация по разделам
     ├── grammarTheory.ts          # GRAMMAR_THEORY — объяснение правил, навигация по темам
     ├── grammarPractice/          # GRAMMAR_PRACTICE — сессия упражнений
@@ -42,16 +44,19 @@ onExit(currentState) → setState(DB) → onEnter(newState)
 
 `StateHandlerContext` содержит:
 - `ctx` — grammY Context (Telegram API)
-- `userId`, `messageText`, `callbackData`
-- `currentState` — текущее состояние из enum
-- `profile` — профиль пользователя (undefined в ONBOARDING)
+- `user` — объект User (`@domain/user/types`), содержит `id`, `state` и метаданные Telegram
+- `messageText`, `callbackData`
+- `profile` — профиль обучения UserProfile (`@domain/user/types`), undefined в ONBOARDING
 - `grammarRule` — передается из GRAMMAR_THEORY в GRAMMAR_PRACTICE
+
+Доступ: `context.user.id` (ID пользователя), `context.user.state` (текущее состояние).
+Объект User загружается один раз в entry point (handler/command) и передаётся в StateMachine.
 
 ## Зависимости
 
 - `GrammarPracticeState` и `PracticeResultState` получают `SessionRepository` через конструктор (DI)
 - Остальные состояния stateless или используют LLM напрямую
-- State machine инициализируется в `bot.ts` через `createStateMachine(sessionRepository)`
+- State machine инициализируется в `bot.ts` через `createStateMachine(sessionRepository, userRepository)`
 
 ## Диаграмма переходов
 

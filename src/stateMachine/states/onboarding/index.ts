@@ -40,7 +40,7 @@ export class OnboardingState extends State {
 	}
 
 	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
-		const { ctx, userId, messageText } = context;
+		const { ctx, user, messageText } = context;
 
 		try {
 			// Отправляем сообщение о том, что анализируем ответ
@@ -61,7 +61,7 @@ export class OnboardingState extends State {
 			const parsed = JSON.parse(analysis);
 
 			// Сохраняем профиль пользователя
-			await this.userRepository.setProfile(userId, {
+			await this.userRepository.setProfile(user.id, {
 				level: parsed.level,
 				goals: parsed.goals,
 				interests: parsed.interests,

@@ -28,22 +28,22 @@ export function createStartCommand(stateMachine: StateMachine, userRepository: U
 			isPremium: ctx.from?.is_premium ?? false,
 		};
 
-		// Создаем или обновляем пользователя в БД
-		await userRepository.upsert(createUserData);
+		// Создаем или обновляем пользователя в БД — получаем полный объект User
+		const user = await userRepository.upsert(createUserData);
 
 		// Проверяем наличие профиля обучения
 		const existingProfile = await userRepository.getProfile(userId);
 
 		if (existingProfile) {
 			// User already completed onboarding, restore to MAIN_MENU
-			await stateMachine.changeStateTo(userId, UserState.MAIN_MENU, ctx);
+			await stateMachine.changeStateTo(user, UserState.MAIN_MENU, ctx, existingProfile);
 			await ctx.reply("Добро пожаловать обратно! 👋", {
 				reply_markup: mainMenuKeyboard,
 			});
 		} else {
 			// New user - start onboarding
 			// changeStateTo will automatically call onEnter for ONBOARDING state
-			await stateMachine.changeStateTo(userId, UserState.ONBOARDING, ctx);
+			await stateMachine.changeStateTo(user, UserState.ONBOARDING, ctx);
 		}
 	};
 }
