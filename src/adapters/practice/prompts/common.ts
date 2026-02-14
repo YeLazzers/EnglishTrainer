@@ -29,7 +29,7 @@ export const EXERCISE_RESPONSE_SCHEMA: JSONSchema = {
 					},
 					question: {
 						type: "string",
-						description: "Question text, HTML allowed",
+						description: "Question text. HTML tags allowed: <b>, <i>, <code>. For line breaks use \\n, NOT <br>.",
 					},
 					options: {
 						type: "array",
