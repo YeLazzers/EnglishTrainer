@@ -224,7 +224,7 @@ export function createStateMachine(
 
 	// Регистрируем все состояния
 	machine.register(new OnboardingState(userRepository));
-	machine.register(new MainMenuState());
+	machine.register(new MainMenuState(grammarRepository));
 	machine.register(new GrammarTheoryState(grammarRepository));
 	machine.register(new GrammarPracticeState(sessionRepository, exerciseGenerator));
 	machine.register(new PracticeResultState(sessionRepository, grammarRepository));
