@@ -1,6 +1,10 @@
 // IMPORTANT: Load environment variables first (before any other imports)
 import { config } from "dotenv";
+
+// Version marker for debugging Railway deployment
+console.log("🚀 Bot starting - BUILD_VERSION: 2026-02-15-v3");
 config();
+console.log("✅ dotenv config() called");
 
 import { Bot } from "grammy";
 
