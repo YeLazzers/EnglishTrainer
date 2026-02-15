@@ -3,16 +3,10 @@ import { existsSync } from "fs";
 
 import { config } from "dotenv";
 
-// Version marker for debugging Railway deployment
-console.log("🚀 Bot starting - BUILD_VERSION: 2026-02-15-v4");
-
 // Load .env only if it exists (development mode)
 // In production (Docker/Railway), env vars are passed directly
 if (existsSync(".env")) {
-	console.log("✅ .env file found, loading with dotenv");
 	config();
-} else {
-	console.log("ℹ️  No .env file, using system environment variables (production mode)");
 }
 
 import { Bot } from "grammy";
@@ -22,33 +16,22 @@ import { createUserRepository } from "@adapters/db/user";
 import { createLimitRepository } from "@adapters/limits";
 import { createExerciseGenerator } from "@adapters/practice";
 import { createSessionRepository } from "@adapters/session";
-import { debugCommand } from "@commands/debug";
+import { createDebugCommand } from "@commands/debug";
 import { createDebugLimitsCommand } from "@commands/debugLimits";
 import { createDebugRedisCommand } from "@commands/debugRedis";
 import { createStartCommand } from "@commands/start";
 import { createMessageHandler } from "@handlers/messageWithStateMachine";
 import { createStateMachine } from "@sm";
 
-// DEBUG: Print environment variables
-console.log("[DEBUG] Environment variables:");
-console.log("BOT_TOKEN:", process.env.BOT_TOKEN ? "✓ set" : "✗ missing");
-console.log("DATABASE_URL:", process.env.DATABASE_URL ? `✓ set (${(process.env.DATABASE_URL || '').substring(0, 30)}...)` : "✗ missing");
-console.log("REDIS_URL:", process.env.REDIS_URL ? "✓ set" : "✗ missing");
-console.log("All env keys:", Object.keys(process.env).filter(k => !k.startsWith("npm_")).slice(0, 30).join(", "));
-console.log("Full env keys count:", Object.keys(process.env).length);
-
 const token = process.env.BOT_TOKEN;
 if (!token) {
 	throw new Error("BOT_TOKEN environment variable is not set");
 }
 
-console.log("[DEBUG] Creating Bot instance...");
 const bot = new Bot(token);
 
 // Инициализировать UserRepository один раз
-console.log("[DEBUG] Creating UserRepository...");
 const userRepository = createUserRepository();
-console.log("[DEBUG] UserRepository created successfully");
 
 // Инициализировать SessionRepository один раз
 const sessionRepository = createSessionRepository();
@@ -72,7 +55,7 @@ const stateMachine = createStateMachine(
 );
 
 // Регистрировать команды
-bot.command("debug", debugCommand);
+bot.command("debug", createDebugCommand(userRepository));
 bot.command("debug_redis", createDebugRedisCommand(sessionRepository));
 bot.command("debug_limits", createDebugLimitsCommand(limitRepository));
 bot.command("start", createStartCommand(stateMachine, userRepository));

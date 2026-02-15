@@ -1,5 +1,11 @@
 // @legacy: works with TestUserState/TestUserProfile tables.
 // Use @adapters/db/user/prisma-repository for new code.
+//
+// TODO: TECH DEBT - Remove this file and all references to it:
+// - This is legacy code used only by src/state.ts facade
+// - src/state.ts itself should be removed or migrated to use @adapters/db/user
+// - All imports of createUserRepository should use @adapters/db/user instead
+// - After migration, delete this file and @adapters/db/index.ts
 
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
@@ -14,11 +20,9 @@ export class PrismaUserRepository implements UserRepository {
 
 	constructor(connectionString?: string) {
 		const url = connectionString ?? process.env.DATABASE_URL;
-		// TEMP DEBUG: Comment out to see next error
-		// if (!url) throw new Error("DATABASE_URL is not set");
-		console.log("[LEGACY PrismaUserRepository] DATABASE_URL:", url ? `✓ set (${url.substring(0, 30)}...)` : "✗ missing");
+		if (!url) throw new Error("DATABASE_URL is not set");
 
-		const adapter = new PrismaBetterSqlite3({ url: url || "file:./dev.db" });
+		const adapter = new PrismaBetterSqlite3({ url });
 		this.prisma = new PrismaClient({ adapter });
 	}
 
