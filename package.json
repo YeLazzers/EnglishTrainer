@@ -20,6 +20,9 @@
   "author": "",
   "license": "ISC",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "dependencies": {
     "@google/genai": "^1.40.0",
     "@prisma/adapter-better-sqlite3": "^7.3.0",
