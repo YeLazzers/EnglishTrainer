@@ -10,3 +10,6 @@ redis-data/
 
 # LLM logs (debug only)
 llm_logs/
+
+# Railway logs (debug only)
+railway_logs/
