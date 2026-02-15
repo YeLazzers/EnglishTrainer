@@ -1,5 +1,7 @@
 // IMPORTANT: Load environment variables first (before any other imports)
-import "dotenv/config";
+import { config } from "dotenv";
+config();
+
 import { Bot } from "grammy";
 
 import { createGrammarRepository } from "@adapters/db/grammar";
