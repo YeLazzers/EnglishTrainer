@@ -4,12 +4,13 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "baseUrl": ".",
+    "outDir": "dist",
+    "rootDir": "src",
     "paths": {
       "@domain": ["src/domain"],
       "@domain/*": ["src/domain/*"],
       "@adapters": ["src/adapters"],
       "@adapters/*": ["src/adapters/*"],
-      "@prisma-types": ["src/generated/prisma/client"],
       "@sm": ["src/stateMachine"],
       "@sm/*": ["src/stateMachine/*"],
       "@commands": ["src/commands"],
@@ -20,8 +21,6 @@
       "@llm/*": ["src/llm/*"]
     },
     "lib": ["ES2022"],
-    "outDir": "dist",
-    "rootDir": "src",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
