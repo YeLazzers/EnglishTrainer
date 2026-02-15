@@ -16,6 +16,13 @@ import { createStartCommand } from "@commands/start";
 import { createMessageHandler } from "@handlers/messageWithStateMachine";
 import { createStateMachine } from "@sm";
 
+// DEBUG: Print environment variables
+console.log("[DEBUG] Environment variables:");
+console.log("BOT_TOKEN:", process.env.BOT_TOKEN ? "✓ set" : "✗ missing");
+console.log("DATABASE_URL:", process.env.DATABASE_URL ? "✓ set" : "✗ missing");
+console.log("REDIS_URL:", process.env.REDIS_URL ? "✓ set" : "✗ missing");
+console.log("All env keys:", Object.keys(process.env).filter(k => !k.startsWith("npm_")).slice(0, 20).join(", "));
+
 const token = process.env.BOT_TOKEN;
 if (!token) {
 	throw new Error("BOT_TOKEN environment variable is not set");
