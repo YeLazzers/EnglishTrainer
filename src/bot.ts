@@ -1,10 +1,19 @@
 // IMPORTANT: Load environment variables first (before any other imports)
+import { existsSync } from "fs";
+
 import { config } from "dotenv";
 
 // Version marker for debugging Railway deployment
-console.log("🚀 Bot starting - BUILD_VERSION: 2026-02-15-v3");
-config();
-console.log("✅ dotenv config() called");
+console.log("🚀 Bot starting - BUILD_VERSION: 2026-02-15-v4");
+
+// Load .env only if it exists (development mode)
+// In production (Docker/Railway), env vars are passed directly
+if (existsSync(".env")) {
+	console.log("✅ .env file found, loading with dotenv");
+	config();
+} else {
+	console.log("ℹ️  No .env file, using system environment variables (production mode)");
+}
 
 import { Bot } from "grammy";
 
