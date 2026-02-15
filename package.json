@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "dev": "tsx --env-file=.env src/bot.ts",
-    "build": "rm -rf dist && prisma generate && tsup src/bot.ts --format esm",
+    "build": "rm -rf dist && prisma generate && tsup src/bot.ts --format esm --treeshake smallest",
     "start": "node dist/bot.js",
     "start:studio": "prisma studio",
     "lint": "eslint .",
