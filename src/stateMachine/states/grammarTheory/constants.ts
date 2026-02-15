@@ -84,7 +84,7 @@ export const GRAMMAR_THEORY_RESPONSE_SCHEMA: JSONSchema = {
 		theory: {
 			type: "string",
 			description:
-				"Grammar rule explanation. Format: Telegram HTML tags only (<b>, <i>, <code>, <s>, <pre>). No Markdown, no unsupported HTML. Use bullet lists (• or numbered). Use \n for line breaks, no <br>. Must be valid inside JSON string.",
+				"Grammar rule explanation. CRITICAL: Use only Telegram HTML tags (<b>, <i>, <code>, <s>, <pre>). Use \\n for line breaks. NEVER use <br>, <br/>, or any other break tags. Do NOT include control characters (\\u000b, \\t). Use bullet lists (• or numbered). Must be clean, valid JSON string content.",
 		},
 	},
 	required: ["category", "topic", "rule_name", "level", "summary", "theory"],

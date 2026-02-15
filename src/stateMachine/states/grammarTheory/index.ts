@@ -1,9 +1,12 @@
 import { InlineKeyboard } from "grammy";
 
 import type { GrammarRepository } from "@domain/grammar/repository";
+import type { LimitRepository } from "@domain/limits/repository";
+import { RequestType } from "@domain/limits/types";
 import { UserState } from "@domain/types";
 import { createLLM } from "@llm";
 import { State } from "@sm/base";
+import { checkAndNotifyLimit } from "@sm/helpers/limitCheck";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 import {
@@ -14,7 +17,7 @@ import {
 	RuleGenerationMode,
 	LOW_MASTERY_THRESHOLD,
 } from "./constants";
-import { getModeInstruction } from "./utils";
+import { getModeInstruction, sanitizeLLMResponse } from "./utils";
 
 /**
  * GRAMMAR_THEORY состояние
@@ -32,7 +35,10 @@ export class GrammarTheoryState extends State {
 	readonly type = UserState.GRAMMAR_THEORY;
 	private llm = createLLM();
 
-	constructor(private grammarRepository: GrammarRepository) {
+	constructor(
+		private grammarRepository: GrammarRepository,
+		private limitRepository: LimitRepository
+	) {
 		super();
 	}
 
@@ -134,6 +140,19 @@ export class GrammarTheoryState extends State {
 			.replace("{{historySection}}", historySection)
 			.replace("{{modeInstruction}}", modeInstruction);
 
+		// Проверяем лимит перед запросом к LLM
+		const limitAllowed = await checkAndNotifyLimit(
+			ctx,
+			user.id,
+			RequestType.THEORY,
+			this.limitRepository,
+			GRAMMAR_THEORY_REPLY_KEYBOARD
+		);
+
+		if (!limitAllowed) {
+			return;
+		}
+
 		try {
 			await ctx.reply("Ищем интересное правило грамматики для тебя...", {
 				reply_markup: GRAMMAR_THEORY_REPLY_KEYBOARD,
@@ -154,7 +173,12 @@ export class GrammarTheoryState extends State {
 				GRAMMAR_THEORY_RESPONSE_SCHEMA
 			);
 
-			const parsed = JSON.parse(response);
+			// Инкрементируем счётчик использования после успешного LLM-запроса
+			await this.limitRepository.incrementUsage(user.id, RequestType.THEORY);
+
+			// Очищаем ответ от некорректных символов и тегов перед парсингом
+			const cleanedResponse = sanitizeLLMResponse(response);
+			const parsed = JSON.parse(cleanedResponse);
 
 			// Сохраняем топик в БД (upsert - создаем если нет, обновляем если есть)
 			await this.grammarRepository.upsertTopic({

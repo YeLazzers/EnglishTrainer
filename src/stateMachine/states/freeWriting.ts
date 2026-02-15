@@ -1,5 +1,8 @@
+import type { LimitRepository } from "@domain/limits/repository";
+import { RequestType } from "@domain/limits/types";
 import { UserState } from "@domain/types";
 import { State } from "@sm/base";
+import { checkAndNotifyLimit } from "@sm/helpers/limitCheck";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 /**
@@ -16,8 +19,12 @@ import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 export class FreeWritingState extends State {
 	readonly type = UserState.FREE_WRITING;
 
+	constructor(private limitRepository: LimitRepository) {
+		super();
+	}
+
 	async handle(context: StateHandlerContext): Promise<StateHandlerResult> {
-		const { messageText } = context;
+		const { ctx, user, messageText } = context;
 
 		if (messageText === "Меню") {
 			return {
@@ -25,6 +32,21 @@ export class FreeWritingState extends State {
 				handled: true,
 			};
 		}
+
+		// Проверяем лимит перед анализом текста
+		const limitAllowed = await checkAndNotifyLimit(
+			ctx,
+			user.id,
+			RequestType.FREE_WRITING,
+			this.limitRepository
+		);
+
+		if (!limitAllowed) {
+			return { handled: true };
+		}
+
+		// Инкрементируем счётчик (реальный LLM-запрос будет в WRITING_FEEDBACK.onEnter)
+		await this.limitRepository.incrementUsage(user.id, RequestType.FREE_WRITING);
 
 		// Все остальное — это текст для оценки
 		// Переходим в WRITING_FEEDBACK

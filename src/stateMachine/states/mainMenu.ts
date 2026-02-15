@@ -34,10 +34,10 @@ export class MainMenuState extends State {
 
 	/**
 	 * Вход в MAIN_MENU: отправляем клавиатуру главного меню
-	 * (В будущем можно добавить streak, последнюю активность, рекомендации)
 	 */
 	async onEnter(context: StateHandlerContext): Promise<void> {
 		const { ctx } = context;
+
 		await ctx.reply("Выбери раздел:", {
 			reply_markup: mainMenuKeyboard,
 		});

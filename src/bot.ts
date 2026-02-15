@@ -2,9 +2,11 @@ import { Bot } from "grammy";
 
 import { createGrammarRepository } from "@adapters/db/grammar";
 import { createUserRepository } from "@adapters/db/user";
+import { createLimitRepository } from "@adapters/limits";
 import { createExerciseGenerator } from "@adapters/practice";
 import { createSessionRepository } from "@adapters/session";
 import { debugCommand } from "@commands/debug";
+import { createDebugLimitsCommand } from "@commands/debugLimits";
 import { createDebugRedisCommand } from "@commands/debugRedis";
 import { createStartCommand } from "@commands/start";
 import { createMessageHandler } from "@handlers/messageWithStateMachine";
@@ -23,23 +25,28 @@ const userRepository = createUserRepository();
 // Инициализировать SessionRepository один раз
 const sessionRepository = createSessionRepository();
 
+// Инициализировать LimitRepository один раз
+const limitRepository = createLimitRepository();
+
 // Инициализировать GrammarRepository один раз
 const grammarRepository = createGrammarRepository();
 
 // Инициализировать ExerciseGenerator один раз
 const exerciseGenerator = createExerciseGenerator(grammarRepository);
 
-// Инициализировать State Machine с SessionRepository, UserRepository, GrammarRepository и ExerciseGenerator
+// Инициализировать State Machine с SessionRepository, UserRepository, GrammarRepository, ExerciseGenerator и LimitRepository
 const stateMachine = createStateMachine(
 	sessionRepository,
 	userRepository,
 	grammarRepository,
-	exerciseGenerator
+	exerciseGenerator,
+	limitRepository
 );
 
 // Регистрировать команды
 bot.command("debug", debugCommand);
 bot.command("debug_redis", createDebugRedisCommand(sessionRepository));
+bot.command("debug_limits", createDebugLimitsCommand(limitRepository));
 bot.command("start", createStartCommand(stateMachine, userRepository));
 
 // Регистрировать обработчик текстовых сообщений

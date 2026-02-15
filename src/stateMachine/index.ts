@@ -1,6 +1,7 @@
 import { Context } from "grammy";
 
 import type { GrammarRepository } from "@domain/grammar/repository";
+import type { LimitRepository } from "@domain/limits/repository";
 import type { ExerciseGenerator } from "@domain/practice/exercise-generator";
 import { SessionRepository } from "@domain/session-repository";
 import { UserState } from "@domain/types";
@@ -213,22 +214,24 @@ export class StateMachine {
  * @param userRepository UserRepository для управления пользователями и профилями
  * @param grammarRepository GrammarRepository для работы с грамматическими топиками и прогрессом
  * @param exerciseGenerator ExerciseGenerator для генерации упражнений
+ * @param limitRepository LimitRepository для управления лимитами запросов
  */
 export function createStateMachine(
 	sessionRepository: SessionRepository,
 	userRepository: UserRepository,
 	grammarRepository: GrammarRepository,
-	exerciseGenerator: ExerciseGenerator
+	exerciseGenerator: ExerciseGenerator,
+	limitRepository: LimitRepository
 ): StateMachine {
 	const machine = new StateMachine(userRepository);
 
 	// Регистрируем все состояния
 	machine.register(new OnboardingState(userRepository));
 	machine.register(new MainMenuState(grammarRepository));
-	machine.register(new GrammarTheoryState(grammarRepository));
-	machine.register(new GrammarPracticeState(sessionRepository, exerciseGenerator));
+	machine.register(new GrammarTheoryState(grammarRepository, limitRepository));
+	machine.register(new GrammarPracticeState(sessionRepository, exerciseGenerator, limitRepository));
 	machine.register(new PracticeResultState(sessionRepository, grammarRepository));
-	machine.register(new FreeWritingState());
+	machine.register(new FreeWritingState(limitRepository));
 	machine.register(new WritingFeedbackState());
 	machine.register(new StatsState());
 

@@ -1,11 +1,14 @@
 import { InlineKeyboard } from "grammy";
 
+import type { LimitRepository } from "@domain/limits/repository";
+import { RequestType } from "@domain/limits/types";
 import type { ExerciseGenerator } from "@domain/practice/exercise-generator";
 import type { ExerciseGenerationRequest } from "@domain/practice/types";
 import { SessionRepository } from "@domain/session-repository";
 import { Exercise, ExerciseType } from "@domain/session-types";
 import { UserState } from "@domain/types";
 import { State } from "@sm/base";
+import { checkAndNotifyLimit } from "@sm/helpers/limitCheck";
 import { StateHandlerContext, StateHandlerResult } from "@sm/types";
 
 import { GRAMMAR_PRACTICE_REPLY_KEYBOARD } from "./constants";
@@ -31,7 +34,8 @@ export class GrammarPracticeState extends State {
 
 	constructor(
 		private sessionRepository: SessionRepository,
-		private exerciseGenerator: ExerciseGenerator
+		private exerciseGenerator: ExerciseGenerator,
+		private limitRepository: LimitRepository
 	) {
 		super();
 	}
@@ -81,6 +85,19 @@ export class GrammarPracticeState extends State {
 		const mode = grammarTopicId ? "topic" : "review";
 		const displayName = grammarRule || "Повторение пройденных правил";
 
+		// Проверяем лимит перед генерацией упражнений
+		const limitAllowed = await checkAndNotifyLimit(
+			ctx,
+			user.id,
+			RequestType.PRACTICE,
+			this.limitRepository,
+			GRAMMAR_PRACTICE_REPLY_KEYBOARD
+		);
+
+		if (!limitAllowed) {
+			return;
+		}
+
 		await ctx.reply(`Генерируем упражнения: <b>${displayName}</b>...`, {
 			parse_mode: "HTML",
 			reply_markup: GRAMMAR_PRACTICE_REPLY_KEYBOARD,
@@ -100,6 +117,9 @@ export class GrammarPracticeState extends State {
 
 			// Генерируем упражнения через адаптер
 			const exercises = await this.exerciseGenerator.generate(request);
+
+			// Инкрементируем счётчик использования после успешной генерации упражнений
+			await this.limitRepository.incrementUsage(user.id, RequestType.PRACTICE);
 
 			// Создаем сессию в Redis
 			const sessionId = await this.sessionRepository.createSession({
