@@ -1,6 +1,5 @@
 // Factory and re-exports for Grammar domain adapter
 
-import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
 

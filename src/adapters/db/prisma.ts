@@ -1,7 +1,6 @@
 // @legacy: works with TestUserState/TestUserProfile tables.
 // Use @adapters/db/user/prisma-repository for new code.
 
-import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "@prisma/client";
 
