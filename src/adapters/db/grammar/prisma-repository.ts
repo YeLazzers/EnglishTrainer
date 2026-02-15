@@ -1,5 +1,7 @@
 // Adapter: Prisma implementation of GrammarRepository (grammar_topic + user_topic_progress tables)
 
+import type { PrismaClient } from "@prisma/client";
+
 import type { GrammarRepository } from "@domain/grammar/repository";
 import type {
 	GrammarTopic,
@@ -7,7 +9,6 @@ import type {
 	UserTopicProgress,
 	UpdateUserTopicProgress,
 } from "@domain/grammar/types";
-import type { PrismaClient } from "@prisma-types";
 
 import { toDomainTopic, toDomainProgress, toDbTopicData } from "./mappers";
 

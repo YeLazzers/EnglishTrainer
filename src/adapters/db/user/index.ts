@@ -2,12 +2,11 @@
 
 import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaClient } from "@prisma/client";
 
 import type { UserRepository } from "@domain/user/repository";
-import { PrismaClient } from "@prisma-types";
 
 import { PrismaUserRepository } from "./prisma-repository";
-
 
 export function createUserRepository(): UserRepository {
 	const url = process.env.DATABASE_URL;

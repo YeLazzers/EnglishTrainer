@@ -1,9 +1,10 @@
 // Adapter: Prisma implementation of UserRepository (user + user_profile tables)
 
+import type { PrismaClient } from "@prisma/client";
+
 import type { UserState } from "@domain/types";
 import type { UserRepository } from "@domain/user/repository";
 import type { User, UserProfile, CreateUser, CreateUserProfile } from "@domain/user/types";
-import type { PrismaClient } from "@prisma-types";
 
 import { toDomainUser, toDomainProfile, toDbUserData, toDbProfileData } from "./mappers";
 

@@ -1,8 +1,9 @@
 // @legacy: works with TestUserProfile table.
 // Use @adapters/db/user/mappers for new code.
 
+import type { TestUserProfile } from "@prisma/client";
+
 import type { UserProfile, CreateUserProfile } from "@domain/types";
-import type { TestUserProfile } from "@prisma-types";
 
 /**
  * Transform Prisma model (DB layer) to Domain type

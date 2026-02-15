@@ -2,14 +2,11 @@
 // Works with "grammar_topic" and "user_topic_progress" tables
 
 import type {
-	GrammarTopic,
-	CreateGrammarTopic,
-	UserTopicProgress,
-} from "@domain/grammar/types";
-import type {
 	GrammarTopic as PrismaGrammarTopic,
 	UserTopicProgress as PrismaUserTopicProgress,
-} from "@prisma-types";
+} from "@prisma/client";
+
+import type { GrammarTopic, CreateGrammarTopic, UserTopicProgress } from "@domain/grammar/types";
 
 export function toDomainTopic(db: PrismaGrammarTopic): GrammarTopic {
 	return {
