@@ -9,9 +9,11 @@ import { PrismaUserRepository } from "./prisma-repository";
 
 export function createUserRepository(): UserRepository {
 	const url = process.env.DATABASE_URL;
-	if (!url) throw new Error("DATABASE_URL is not set");
+	// TEMP DEBUG: Comment out to see next error
+	// if (!url) throw new Error("DATABASE_URL is not set");
+	console.log("[NEW createUserRepository] DATABASE_URL:", url ? `✓ set (${url.substring(0, 30)}...)` : "✗ missing");
 
-	const adapter = new PrismaBetterSqlite3({ url });
+	const adapter = new PrismaBetterSqlite3({ url: url || "file:./dev.db" });
 	const prisma = new PrismaClient({ adapter });
 
 	return new PrismaUserRepository(prisma);
