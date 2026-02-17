@@ -124,6 +124,18 @@ npm run lint          # Линтинг
 npm run format        # Форматирование кода
 ```
 
+### Логирование и диагностика
+
+По умолчанию бот пишет структурированные JSON-логи в stdout (удобно для Railway Logs).
+
+Переменные окружения:
+
+```bash
+LOG_LEVEL=info
+LOG_UPDATES=false
+ERROR_ALERT_CHAT_ID=<опционально, id админ-чата для алертов>
+```
+
 ### Архитектура
 
 Проект построен на **Hexagonal Architecture** (Ports & Adapters):

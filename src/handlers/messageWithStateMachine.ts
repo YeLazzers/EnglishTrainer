@@ -3,6 +3,8 @@ import { Context } from "grammy";
 import type { UserRepository } from "@adapters/db/user";
 import { StateMachine } from "@sm";
 
+import type { ReportErrorFn } from "../observability/error-reporter";
+
 /**
  * Обработчик текстовых сообщений со State Machine
  *
@@ -12,8 +14,13 @@ import { StateMachine } from "@sm";
  *
  * @param stateMachine Инстанс StateMachine
  * @param userRepository UserRepository для получения пользователя и профиля
+ * @param reportError Функция централизованного логирования ошибок
  */
-export function createMessageHandler(stateMachine: StateMachine, userRepository: UserRepository) {
+export function createMessageHandler(
+	stateMachine: StateMachine,
+	userRepository: UserRepository,
+	reportError: ReportErrorFn
+) {
 	return async (ctx: Context): Promise<void> => {
 		const userId = ctx.from?.id;
 
@@ -35,7 +42,12 @@ export function createMessageHandler(stateMachine: StateMachine, userRepository:
 
 			await stateMachine.handleMessage(ctx, user, profile ?? undefined);
 		} catch (error) {
-			console.error(`[MessageHandler] Error for user ${userId}:`, error);
+			await reportError({
+				scope: "message_handler",
+				error,
+				ctx,
+				meta: { userId },
+			});
 			await ctx.reply(
 				"Произошла ошибка при обработке сообщения. Попробуй позже или напиши /start."
 			);

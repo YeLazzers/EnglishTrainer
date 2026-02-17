@@ -8,6 +8,8 @@ import { UserState } from "@domain/types";
 import { UserRepository } from "@domain/user/repository";
 import type { User, UserProfile } from "@domain/user/types";
 
+import type { ReportErrorFn } from "../observability/error-reporter";
+
 import { State } from "./base";
 import {
 	OnboardingState,
@@ -40,7 +42,10 @@ import { StateHandlerContext } from "./types";
 export class StateMachine {
 	private states: Map<UserState, State> = new Map();
 
-	constructor(private userRepository: UserRepository) {}
+	constructor(
+		private userRepository: UserRepository,
+		private reportError: ReportErrorFn
+	) {}
 
 	/**
 	 * Регистрирует обработчик для состояния
@@ -71,7 +76,12 @@ export class StateMachine {
 		// Находим обработчик для этого состояния
 		const stateHandler = this.states.get(user.state);
 		if (!stateHandler) {
-			console.error(`No handler registered for state: ${user.state}`);
+			await this.reportError({
+				scope: "state_machine.missing_handler.message",
+				error: new Error(`No handler registered for state: ${user.state}`),
+				ctx,
+				meta: { userId: user.id, state: user.state },
+			});
 			await ctx.reply("Внутренняя ошибка. Выполни /start.");
 			return;
 		}
@@ -115,7 +125,12 @@ export class StateMachine {
 			// Находим обработчик для этого состояния
 			const stateHandler = this.states.get(user.state);
 			if (!stateHandler) {
-				console.error(`No handler registered for state: ${user.state}`);
+				await this.reportError({
+					scope: "state_machine.missing_handler.callback",
+					error: new Error(`No handler registered for state: ${user.state}`),
+					ctx,
+					meta: { userId: user.id, state: user.state, callbackData },
+				});
 				await ctx.answerCallbackQuery({ text: "Ошибка" });
 				return;
 			}
@@ -138,7 +153,12 @@ export class StateMachine {
 
 			await ctx.answerCallbackQuery();
 		} catch (error) {
-			console.error(`[Callback] Error for user ${user.id}:`, error);
+			await this.reportError({
+				scope: "state_machine.callback",
+				error,
+				ctx,
+				meta: { userId: user.id, state: user.state, callbackData },
+			});
 			await ctx.answerCallbackQuery({ text: "Произошла ошибка" });
 		}
 	}
@@ -221,9 +241,10 @@ export function createStateMachine(
 	userRepository: UserRepository,
 	grammarRepository: GrammarRepository,
 	exerciseGenerator: ExerciseGenerator,
-	limitRepository: LimitRepository
+	limitRepository: LimitRepository,
+	reportError: ReportErrorFn
 ): StateMachine {
-	const machine = new StateMachine(userRepository);
+	const machine = new StateMachine(userRepository, reportError);
 
 	// Регистрируем все состояния
 	machine.register(new OnboardingState(userRepository));
